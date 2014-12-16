@@ -1,42 +1,9 @@
 class Stock 
-	attr_accessor :key, :value, :options, :code, :value, :date
+	attr_accessor :key, :value
 
-	def initialize(key = nil, *value)
-		@key     = key
-		@value   = value[0]
-		@options = value[1] 
-	end
-
-	def subkey
-		date
-	end
-
-	def subkey=(subkey)
-		@date = subkey
-	end
-
-	def code=(code)
-		@code = code
-		@key  ||= "            "
-		@key[0..3] = code
-	end
-
-	def code
-		@code ||= @key[0..3]
-	end
-
-	def date
-		@date ||= @key[4..11]
-	end
-
-	def date=(date)
-		@date = date
-		@key  ||= "            "
-		@key[4..11] = date
-	end
-
-	def to_s
-		"#{@code}	#{@date}	#{@value}"
+	def initialize(key ,value)
+		@key   = key
+		@value = value
 	end
 
 	def <=>(o)

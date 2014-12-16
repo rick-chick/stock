@@ -83,4 +83,51 @@ describe "Stocks" do
 			expect(ret[1].value).to eq 7
 		end
 	end
+
+	describe "each_code" do
+		let(:code1) { "1301" }
+		let(:code2) { "1302" }
+		let(:date1) { "20140101" }
+		let(:date2) { "20140102" }
+		let(:date3) { "20140103" }
+		let(:stocks) { 
+			ss = Stocks.new
+			s = Stock.new
+			s.code  = code1
+			s.date  = date1
+			s.value = 1
+			ss << s
+			s = Stock.new
+			s.code  = code1
+			s.date  = date2
+			s.value = 1
+			ss << s
+			s = Stock.new
+			s.code  = code1
+			s.date  = date3
+			s.value = 1
+			ss << s
+			s = Stock.new
+			s.code  = code2
+			s.date  = date1
+			s.value = 1
+			ss << s
+			s = Stock.new
+			s.code  = code2
+			s.date  = date3
+			s.value = 1
+			ss << s
+		}
+		specify do
+			ret = []
+			stocks.each_code do |stocks|
+				ret << stocks
+			end
+			expect(ret.length).to eq 2
+			expect(ret[0].length).to eq 3
+			ret[0].each {|stock| expect(stock.code).to eq code1}
+			expect(ret[1].length).to eq 2
+			ret[1].each {|stock| expect(stock.code).to eq code2}
+		end
+	end
 end
