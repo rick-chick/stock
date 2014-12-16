@@ -18,4 +18,3 @@ class Db
 												:host 			=> '192.168.3.20')
 	end
 end
-

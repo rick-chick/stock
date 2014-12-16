@@ -1,4 +1,0 @@
-LIB_DIR = File.expand_path(File.dirname(__FILE__))
-require LIB_DIR + '/stock/stocks'
-require LIB_DIR + '/stock/stock'
-require LIB_DIR + '/stock/db'
