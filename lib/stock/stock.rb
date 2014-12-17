@@ -1,5 +1,6 @@
 class Stock 
-  attr_accessor :key, :value, :options, :code, :value, :date
+
+  attr_accessor :key, :value, :options, :code, :value, :date, :open, :high, :low, :close, :adjusted, :volume
 
   def initialize(key = nil, *value)
     @key     = key
@@ -67,6 +68,30 @@ class Stock
     read(from, to, "adjusted", hash)
   end
 
+  def insert
+    sql = <<-SQL
+      insert into stocks
+      (code, date, open, high, low, close, adjusted, volume)
+      values
+      ($1, $2, $3, $4, $5, $6, $7, $8)
+    SQL
+    params = []
+		params << @code.to_s
+		params << @date.to_s
+		params << @open.to_f
+    params << @high.to_f
+    params << @low.to_f
+    params << @close.to_f
+		params << @adjusted.to_f
+		params << @volume.to_i
+    Db.conn.exec(sql, params)
+		1
+  rescue => ex
+		p self
+		ex.backtrace
+    0
+  end
+
   def self.read(from ,to, column, hash = {})
     params = [from, to]
     conditions = ""
@@ -96,5 +121,6 @@ class Stock
     end
     stocks
   end
+
 end
 

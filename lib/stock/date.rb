@@ -1,12 +1,13 @@
 class Date
+
   @@dates = nil
 
   def self.all
     return @@dates if @@dates
     sql = <<-SQL
-      select   date 
-      from    dates
-      order by  date
+      select   distinct date
+      from     stocks
+      order by date
     SQL
 
     @@dates = []
@@ -38,9 +39,17 @@ class Date
     all.last
   end
 
+	def self.now
+		Date.today.strftime('%Y%m%d')
+	end
+
+  def self.latest_after_a_day
+    (Date.parse(Date.latest) + 1).strftime("%Y%m%d")
+  end
+
   def self.latest_of(code)
     sql = <<-SQL
-      select   date 
+      select  date 
       from    stocks
       where   code = $1
       order by  date desc

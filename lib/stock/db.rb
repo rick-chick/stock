@@ -12,9 +12,9 @@ class Db
   end
 
   def self.open
-    PG::Connection.open(:user       => 'akishige',
-                        :password   => '135790',
+    PG::Connection.open(:user       => 'postgres',
+                        :password   => 'admin',
                         :dbname     => 'stock', 
-                        :host       => '192.168.3.20')
+                        :host       => 'localhost')
   end
 end

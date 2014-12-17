@@ -1,4 +1,5 @@
 class Code
+
   def self.all
     sql = <<-SQL
       select  code

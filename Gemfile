@@ -1,3 +1,6 @@
 source 'https://rubygems.org'
 gem 'rspec'
 gem 'pg'
+gem 'nokogiri'
+gem 'rake'
+gem 'standalone_migrations'

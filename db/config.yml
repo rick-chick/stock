@@ -1,0 +1,17 @@
+development:
+  adapter: postgresql
+  host: localhost
+  encoding: utf8
+  database: stock
+  pool: 5
+  username: postgres
+  password: admin
+
+test:
+  adapter: postgresql
+  host: localhost
+  encoding: utf8
+  database: stock
+  pool: 5
+  username: postgres
+  password: admin
