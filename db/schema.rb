@@ -14,8 +14,8 @@
 ActiveRecord::Schema.define(:version => 20141218083905) do
 
   create_table "splits", :id => false, :force => true do |t|
-    t.string "code",   :limit => 8
-    t.string "date",   :limit => 8
+    t.string "code",   :limit => 8, :null => false
+    t.string "date",   :limit => 8, :null => false
     t.float  "before"
     t.float  "after"
   end

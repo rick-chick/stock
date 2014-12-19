@@ -39,9 +39,9 @@ class Date
     all.last
   end
 
-	def self.now
-		Date.today.strftime('%Y%m%d')
-	end
+  def self.now
+    Date.today.strftime('%Y%m%d')
+  end
 
   def self.latest_after_a_day
     (Date.parse(Date.latest) + 1).strftime("%Y%m%d")
