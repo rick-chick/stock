@@ -11,7 +11,14 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20141217012020) do
+ActiveRecord::Schema.define(:version => 20141218083905) do
+
+  create_table "splits", :id => false, :force => true do |t|
+    t.string "code",   :limit => 8
+    t.string "date",   :limit => 8
+    t.float  "before"
+    t.float  "after"
+  end
 
   create_table "stocks", :id => false, :force => true do |t|
     t.string  "code",     :limit => 8, :null => false
