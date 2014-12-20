@@ -1,17 +1,17 @@
 development:
   adapter: postgresql
-  host: localhost
+  host: 192.168.3.20
   encoding: utf8
   database: stock
   pool: 5
-  username: postgres
-  password: admin
+  username: akishige
+  password: 135790
 
 test:
   adapter: postgresql
-  host: localhost
+  host: 192.168.3.20
   encoding: utf8
   database: stock
   pool: 5
-  username: postgres
-  password: admin
+  username: akishige
+  password: 135790
