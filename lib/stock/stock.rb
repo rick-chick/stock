@@ -69,15 +69,15 @@ class Stock
   end
 
   def insert
-		Db.conn.exec("begin")
-		params = []
-		params << @open.to_f
+    Db.conn.exec("begin")
+    params = []
+    params << @open.to_f
     params << @high.to_f
     params << @low.to_f
     params << @close.to_f
-		params << @adjusted.to_f
-		params << @volume.to_i
-		sql =<<-SQL
+    params << @adjusted.to_f
+    params << @volume.to_i
+    sql =<<-SQL
       insert into stocks
       (open, high, low, close, adjusted, volume, updated)
       values
@@ -85,20 +85,20 @@ class Stock
     SQL
     Db.conn.exec(sql, params)
     Db.conn.exec("select lastval() id").each do |row|
-			@id = row["id"]
-		end
-		code_date = CodeDate.new
-		code_date.code = @code
-		code_date.date = @date
-		code_date.id   = @id
-		raise "code_dates already exists" if code_date.insert == 0 
-		Db.conn.exec("commit")
-		1
+      @id = row["id"]
+    end
+    code_date = CodeDate.new
+    code_date.code = @code
+    code_date.date = @date
+    code_date.id   = @id
+    raise "code_dates already exists" if code_date.insert == 0 
+    Db.conn.exec("commit")
+    1
   rescue => ex
-		Db.conn.exec("rollback")
-		p self
-		puts ex.backtrace
-		puts ex.message
+    Db.conn.exec("rollback")
+    p self
+    puts ex.backtrace
+    puts ex.message
     0
   end
 
@@ -107,26 +107,26 @@ class Stock
       update stocks 
       set
       (open, high, low, close, adjusted, volume, updated)
-			=
+      =
       ($2, $3, $4, $5, $6, $7, current_timestamp)
-			where id = $1
+      where id = $1
     SQL
     params = []
-		@id ||= CodeDate.id(@code, @date)
-		raise "code_dates not found" if not @id
-		params << @id.to_i
-		params << @open.to_f
+    @id ||= CodeDate.id(@code, @date)
+    raise "code_dates not found" if not @id
+    params << @id.to_i
+    params << @open.to_f
     params << @high.to_f
     params << @low.to_f
     params << @close.to_f
-		params << @adjusted.to_f
-		params << @volume.to_i
+    params << @adjusted.to_f
+    params << @volume.to_i
     Db.conn.exec(sql, params)
-		1
+    1
   rescue => ex
-		p self
-		p ex.backtrace
-		puts ex.message
+    p self
+    p ex.backtrace
+    puts ex.message
     0
   end
 
@@ -143,10 +143,10 @@ class Stock
             , code_dates.code
             , code_dates.date
         from  stocks
-				    , code_dates
+            , code_dates
        where   code_dates.date  >=  $1
           and  code_dates.date  <=  $2
-					and  stocks.id = code_dates.id
+          and  stocks.id = code_dates.id
               #{conditions}
       order by code, date
     SQL

@@ -7,8 +7,8 @@ class Split
       (id, before, after, updated)
       select id, $3, $4, current_timestamp
         from code_dates
-			 where code = $1
-			   and date = $2
+       where code = $1
+         and date = $2
     SQL
     params = []
     params << @code.to_s

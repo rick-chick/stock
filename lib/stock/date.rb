@@ -71,7 +71,7 @@ class Date
     Db.conn.exec(sql, [code]).each do |row|
       return row["date"].to_s
     end
-	end
+  end
  
 end
 
