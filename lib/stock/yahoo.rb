@@ -44,6 +44,7 @@ class Yahoo
       true
     rescue => ex
       puts ex.backtrace
+      puts ex.message
       false
     end
   end

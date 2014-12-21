@@ -3,7 +3,8 @@ class Db
   def self.conn
     @@conn ||= open
     status = @@conn.connect_poll
-    if status != PGconn::CONNECTION_OK
+    if status == PGconn::CONNECTION_BAD
+			p "reconnect"
       @@conn.close
       @@conn = open
     else

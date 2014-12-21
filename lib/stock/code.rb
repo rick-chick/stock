@@ -2,8 +2,8 @@ class Code
 
   def self.all
     sql = <<-SQL
-      select  code
-        from  codes
+      select  distinct code
+        from  code_dates
       order by code
     SQL
 
@@ -19,7 +19,9 @@ class Code
         select   volume
                ,row_number() over (order by date desc) as row_num
           from  stocks
+					    , code_dates
          where  code = $1
+				   and  code_dates.id   = stocks.id
        ) stocks
        where  row_num < 10
     SQL
