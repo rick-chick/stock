@@ -18,9 +18,8 @@ class Stocks < Array
         end
       end
       currents = nexts
-      results << s = Stock.new
-      s.value   = yield items
-      s.subkey  = min.subkey
+      results << s = min.clone
+      s.value = yield items
     end
     Stocks[*results]
   end

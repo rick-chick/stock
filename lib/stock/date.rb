@@ -6,7 +6,7 @@ class Date
     return @@dates if @@dates
     sql = <<-SQL
       select   distinct date
-      from     stocks
+      from     code_dates
       order by date
     SQL
 
@@ -50,7 +50,7 @@ class Date
   def self.latest_of(code)
     sql = <<-SQL
       select  date 
-      from    stocks
+      from    code_dates
       where   code = $1
       order by  date desc
       limit 1
@@ -59,6 +59,20 @@ class Date
       return row["date"].to_s
     end
   end
+
+  def self.oldest_of(code)
+    sql = <<-SQL
+      select  date 
+      from    code_dates
+      where   code = $1
+      order by  date 
+      limit 1
+    SQL
+    Db.conn.exec(sql, [code]).each do |row|
+      return row["date"].to_s
+    end
+  end
+ 
 end
 
 class String

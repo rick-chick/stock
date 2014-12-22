@@ -1,12 +1,14 @@
 class Split
-  attr_accessor :code, :date, :before, :after
+  attr_accessor :code, :date, :before, :after, :id
 
   def insert
     sql = <<-SQL
       insert into splits
-      (code, date, before, after)
-      values
-      ($1, $2, $3, $4)
+      (id, before, after, updated)
+      select id, $3, $4, current_timestamp
+        from code_dates
+       where code = $1
+         and date = $2
     SQL
     params = []
     params << @code.to_s
@@ -17,7 +19,8 @@ class Split
     1
   rescue => ex
     p self
-    ex.backtrace
+    p ex.backtrace
+    puts ex.message
     0
   end
 

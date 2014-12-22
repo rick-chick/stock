@@ -11,24 +11,42 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20141218083905) do
+ActiveRecord::Schema.define(:version => 20141222004854) do
 
-  create_table "splits", :id => false, :force => true do |t|
-    t.string "code",   :limit => 8, :null => false
-    t.string "date",   :limit => 8, :null => false
-    t.float  "before"
-    t.float  "after"
+  create_table "code_dates", :id => false, :force => true do |t|
+    t.integer  "id",      :limit => 8, :null => false
+    t.string   "code",    :limit => 8
+    t.string   "date",    :limit => 8
+    t.datetime "updated"
   end
 
-  create_table "stocks", :id => false, :force => true do |t|
-    t.string  "code",     :limit => 8, :null => false
-    t.string  "date",     :limit => 8, :null => false
-    t.float   "open"
-    t.float   "high"
-    t.float   "low"
-    t.float   "close"
-    t.float   "adjusted"
-    t.integer "volume",   :limit => 8
+  add_index "code_dates", ["code", "date"], :name => "code_date_index", :unique => true
+
+  create_table "code_times", :id => false, :force => true do |t|
+    t.integer  "id",      :limit => 8, :null => false
+    t.string   "code",    :limit => 8
+    t.string   "date",    :limit => 8
+    t.string   "time",    :limit => 4
+    t.datetime "updated"
+  end
+
+  add_index "code_times", ["code", "date", "time"], :name => "code_time_index", :unique => true
+
+  create_table "splits", :id => false, :force => true do |t|
+    t.integer  "id",      :limit => 8, :null => false
+    t.float    "before"
+    t.float    "after"
+    t.datetime "updated"
+  end
+
+  create_table "stocks", :force => true do |t|
+    t.float    "open"
+    t.float    "high"
+    t.float    "low"
+    t.float    "close"
+    t.float    "adjusted"
+    t.integer  "volume",   :limit => 8
+    t.datetime "updated"
   end
 
 end

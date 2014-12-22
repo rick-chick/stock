@@ -3,7 +3,8 @@ class Db
   def self.conn
     @@conn ||= open
     status = @@conn.connect_poll
-    if status != PGconn::CONNECTION_OK
+    if status == PGconn::CONNECTION_BAD
+			p "reconnect"
       @@conn.close
       @@conn = open
     else
@@ -12,9 +13,12 @@ class Db
   end
 
   def self.open
-    PG::Connection.open(:user       => 'akishige',
-                        :password   => '135790',
-                        :dbname     => 'stock', 
-                        :host       => '192.168.3.20')
+    @@settings ||= YAML::load_file(File.expand_path(File.dirname(__FILE__) + "/../../db/config.yml"))
+    params = @@settings["development"]
+    PG::Connection.open(:user       => params["username"],
+                        :password   => params["password"],
+                        :dbname     => params["database"],
+                        :host       => params["host"],
+                       )
   end
 end

@@ -3,12 +3,15 @@ require File.expand_path(File.dirname(__FILE__)) + '/../spec_helper.rb'
 describe "Stocks" do
 
 	describe "merge" do
-		let(:stock1) { [Stock.new("20140202", 1), 
-									  Stock.new("20140203", 3)]}
-		let(:stock2) { [Stock.new("20140202", 2), 
-										Stock.new("20140203", 4)] }
-		let(:stock3) { [Stock.new("20140203", 2)] }
-		let(:stock4) { [Stock.new("20140202", 2)] }
+    let(:code_date1) { CodeDate.new("1301", "20140202") }
+    let(:code_date2) { CodeDate.new("1301", "20140203") }
+    let(:code_date3) { CodeDate.new("1301", "20140204") }
+		let(:stock1) { [Stock.new(code_date1, 1), 
+									  Stock.new(code_date2, 3)]}
+		let(:stock2) { [Stock.new(code_date1, 2), 
+										Stock.new(code_date2, 4)] }
+		let(:stock3) { [Stock.new(code_date2, 2)] }
+		let(:stock4) { [Stock.new(code_date1, 2)] }
 
 		context "2 arrays which have complete matched keys" do
 			let(:result) do
@@ -65,9 +68,12 @@ describe "Stocks" do
 	end
 
 	describe "calc" do
-		let(:stocks) { Stocks[*[Stock.new("20140202", 1), 
-									          Stock.new("20140203", 3),
-		                        Stock.new("20140204", 4),
+    let(:code_date1) { CodeDate.new("1301", "20140202") }
+    let(:code_date2) { CodeDate.new("1301", "20140203") }
+    let(:code_date3) { CodeDate.new("1301", "20140204") }
+		let(:stocks) { Stocks[*[Stock.new(code_date1, 1), 
+									          Stock.new(code_date2, 3),
+		                        Stock.new(code_date3, 4),
 		                       ] 
 		                     ]
 		             }
@@ -77,46 +83,26 @@ describe "Stocks" do
 				s.inject(0) {|r, stock| r += stock.value }
 			end
 			expect(ret.length).to eq 2
-			expect(ret[0].key).to eq "20140203"
+			expect(ret[0].key).to eq code_date2
 			expect(ret[0].value).to eq 4
-			expect(ret[1].key).to eq "20140204"
+			expect(ret[1].key).to eq code_date3
 			expect(ret[1].value).to eq 7
 		end
 	end
 
 	describe "each_code" do
-		let(:code1) { "1301" }
-		let(:code2) { "1302" }
-		let(:date1) { "20140101" }
-		let(:date2) { "20140102" }
-		let(:date3) { "20140103" }
+    let(:code_date1) { CodeDate.new("1301", "20140101") }
+    let(:code_date2) { CodeDate.new("1301", "20140102") }
+    let(:code_date3) { CodeDate.new("1301", "20140103") }
+    let(:code_date4) { CodeDate.new("1302", "20140101") }
+    let(:code_date5) { CodeDate.new("1302", "20140103") }
 		let(:stocks) { 
 			ss = Stocks.new
-			s = Stock.new
-			s.code  = code1
-			s.date  = date1
-			s.value = 1
-			ss << s
-			s = Stock.new
-			s.code  = code1
-			s.date  = date2
-			s.value = 1
-			ss << s
-			s = Stock.new
-			s.code  = code1
-			s.date  = date3
-			s.value = 1
-			ss << s
-			s = Stock.new
-			s.code  = code2
-			s.date  = date1
-			s.value = 1
-			ss << s
-			s = Stock.new
-			s.code  = code2
-			s.date  = date3
-			s.value = 1
-			ss << s
+			ss << Stock.new(code_date1, 1)
+			ss << Stock.new(code_date2, 1)
+      ss << Stock.new(code_date3, 1)
+      ss << Stock.new(code_date4, 1)
+      ss << Stock.new(code_date5, 1)
 		}
 		specify do
 			ret = []
@@ -125,9 +111,9 @@ describe "Stocks" do
 			end
 			expect(ret.length).to eq 2
 			expect(ret[0].length).to eq 3
-			ret[0].each {|stock| expect(stock.code).to eq code1}
+      ret[0].each {|stock| expect(stock.code).to eq code_date1.code}
 			expect(ret[1].length).to eq 2
-			ret[1].each {|stock| expect(stock.code).to eq code2}
+      ret[1].each {|stock| expect(stock.code).to eq code_date4.code}
 		end
 	end
 end
