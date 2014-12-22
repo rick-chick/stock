@@ -27,11 +27,11 @@ class Command
       spt_cnt  = @yahoo.splits.inject(0) {|s, split| s += split.insert }
       puts "insert stocks #{code}: #{stc_cnt}/#{@yahoo.stocks.length}"
       puts "insert splits #{code}: #{spt_cnt}/#{@yahoo.splits.length}"
-			if not args["init"] and spt_cnt > 0 
-				@yahoo.read_stocks(code, Date.oldest_of(code), args["to"])
-				stc_cnt  = @yahoo.stocks.inject(0) {|s, stock| s += stock.update }
-				puts "update stocks #{code}: #{stc_cnt}/#{@yahoo.stocks.length}"
-			end
+      if not args["init"] and spt_cnt > 0 
+        @yahoo.read_stocks(code, Date.oldest_of(code), args["to"])
+        stc_cnt  = @yahoo.stocks.inject(0) {|s, stock| s += stock.update }
+        puts "update stocks #{code}: #{stc_cnt}/#{@yahoo.stocks.length}"
+      end
     end
   end
 
