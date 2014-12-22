@@ -28,8 +28,7 @@ class Yahoo
               @splits << split
             else
               s = Stock.new
-              s.code     = code
-              s.date     = year + month + day
+              s.key      = CodeDate.new(code, year + month + day)
               s.open     = element.content.gsub(",", "")
               s.high     = tds.shift.content.gsub(",", "")
               s.low      = tds.shift.content.gsub(",", "")

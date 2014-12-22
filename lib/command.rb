@@ -23,7 +23,7 @@ class Command
       while not @yahoo.read_stocks(code, args["from"] ,args["to"])
         sleep 60
       end
-      stc_cnt  = @yahoo.stocks.inject(0) {|s, stock| s += stock.insert }
+      stc_cnt  = @yahoo.stocks.inject(0) {|s, stock| s += stock.insert}
       spt_cnt  = @yahoo.splits.inject(0) {|s, split| s += split.insert }
       puts "insert stocks #{code}: #{stc_cnt}/#{@yahoo.stocks.length}"
       puts "insert splits #{code}: #{spt_cnt}/#{@yahoo.splits.length}"

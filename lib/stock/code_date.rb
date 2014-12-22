@@ -2,6 +2,29 @@ class CodeDate
 
   attr_accessor :code, :date, :id
 
+  def initialize(code = nil, date = nil)
+    @code = code
+    @date = date
+    @code ||= "        "
+    @date ||= "        "
+  end
+
+  def subkey
+    @date
+  end
+
+  def subkey=(subkey)
+    @date = subkey[-8..-1]
+  end
+
+  def <=>(o)
+    to_s <=> o.to_s
+  end
+
+  def to_s
+    @key ||= code + date
+  end
+
   def self.id(code, date)
     sql = <<-SQL
     select id 

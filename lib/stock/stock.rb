@@ -1,6 +1,6 @@
 class Stock 
 
-  attr_accessor :key, :value, :options, :code, :value, :date, :open, :high, :low, :close, :adjusted, :volume, :id
+  attr_accessor :options, :key, :value, :open, :high, :low, :close, :adjusted, :volume, :id
 
   def initialize(key = nil, *value)
     @key     = key
@@ -9,39 +9,35 @@ class Stock
   end
 
   def subkey
-    date
+    @key.subkey
   end
 
   def subkey=(subkey)
-    @date = subkey
-  end
-
-  def code=(code)
-    @code = code
-    @key  ||= "            "
-    @key[0..3] = code
+    @key.subkey = subkey
   end
 
   def code
-    @code ||= @key[0..3]
+    @key.code
+  end
+
+  def code=(code)
+    @key.code = code
   end
 
   def date
-    @date ||= @key[4..11]
+    @key.date
   end
 
   def date=(date)
-    @date = date
-    @key  ||= "            "
-    @key[4..11] = date
+    @key.date = date
   end
 
   def to_s
-    "#{@code}  #{@date}  #{@value}"
+    "#{@key}  #{@value}"
   end
 
   def <=>(o)
-    self.key <=> o.key
+    @key <=> o.key
   end
 
   def self.closes(from, to, hash ={})
@@ -87,11 +83,8 @@ class Stock
     Db.conn.exec("select lastval() id").each do |row|
       @id = row["id"]
     end
-    code_date = CodeDate.new
-    code_date.code = @code
-    code_date.date = @date
-    code_date.id   = @id
-    raise "code_dates already exists" if code_date.insert == 0 
+    @key.id = @id
+    raise "code_dates already exists" if @key.insert == 0 
     Db.conn.exec("commit")
     1
   rescue => ex
@@ -154,8 +147,7 @@ class Stock
     stocks = Stocks.new
     Db.conn.exec(sql, params).each do |row|
       s = Stock.new
-      s.code  = row["code"]
-      s.date  = row["date"]
+      s.key   = CodeDate.new(row["code"], row["date"])
       s.value = row[column].to_f
       stocks << s
     end
