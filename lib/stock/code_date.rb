@@ -1,4 +1,3 @@
-
 class CodeDate
 
   attr_accessor :code, :date, :id
