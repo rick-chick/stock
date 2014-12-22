@@ -13,9 +13,12 @@ class Db
   end
 
   def self.open
-    PG::Connection.open(:user       => 'postgres',
-                        :password   => 'admin',
-                        :dbname     => 'stock', 
-                        :host       => 'localhost')
+    @@settings ||= YAML::load_file(File.expand_path(File.dirname(__FILE__) + "/../../db/config.yml"))
+    params = @@settings["development"]
+    PG::Connection.open(:user       => params["username"],
+                        :password   => params["password"],
+                        :dbname     => params["database"],
+                        :host       => params["host"],
+                       )
   end
 end
