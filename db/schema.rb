@@ -23,13 +23,14 @@ ActiveRecord::Schema.define(:version => 20141222004854) do
   add_index "code_dates", ["code", "date"], :name => "code_date_index", :unique => true
 
   create_table "code_times", :id => false, :force => true do |t|
-    t.integer  "id",           :limit => 8, :null => false
-    t.integer  "code_date_id", :limit => 8
-    t.string   "time",         :limit => 4
+    t.integer  "id",      :limit => 8, :null => false
+    t.string   "code",    :limit => 8
+    t.string   "date",    :limit => 8
+    t.string   "time",    :limit => 4
     t.datetime "updated"
   end
 
-  add_index "code_times", ["code_date_id", "time"], :name => "code_time_index", :unique => true
+  add_index "code_times", ["code", "date", "time"], :name => "code_time_index", :unique => true
 
   create_table "splits", :id => false, :force => true do |t|
     t.integer  "id",      :limit => 8, :null => false

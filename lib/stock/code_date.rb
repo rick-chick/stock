@@ -22,7 +22,7 @@ class CodeDate
   end
 
   def to_s
-    @key ||= code + date
+    @key ||= @code + @date
   end
 
   def id
