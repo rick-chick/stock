@@ -105,7 +105,7 @@ class Stock
       where id = $1
     SQL
     params = []
-    @id ||= CodeDate.id(@code, @date)
+    @id ||= @key.id
     raise "code_dates not found" if not @id
     params << @id.to_i
     params << @open.to_f
@@ -132,7 +132,8 @@ class Stock
     end
 
     sql = <<-SQL
-      select  stocks.#{column}
+      select  stocks.id
+            , stocks.#{column}
             , code_dates.code
             , code_dates.date
         from  stocks
@@ -148,6 +149,7 @@ class Stock
     Db.conn.exec(sql, params).each do |row|
       s = Stock.new
       s.key   = CodeDate.new(row["code"], row["date"])
+      s.id    = row["id"]
       s.value = row[column].to_f
       stocks << s
     end

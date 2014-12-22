@@ -25,18 +25,19 @@ class CodeDate
     @key ||= code + date
   end
 
-  def self.id(code, date)
+  def id
+    return @id if @id
     sql = <<-SQL
-    select id 
-      from code_dates
-     where code = $1
-       and date = $2
+      select id 
+        from code_dates
+       where code = $1
+         and date = $2
     SQL
     params = []
-    params << code.to_s
-    params << date.to_s
+    params << @code.to_s
+    params << @date.to_s
     Db.conn.exec(sql, params).each do |row|
-      return row["id"]
+      return @id = row["id"]
     end
     nil
   end
