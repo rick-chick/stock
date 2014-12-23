@@ -2,9 +2,13 @@ class CodeDate
 
   attr_accessor :code, :date, :id
 
+  def self.blank_instances(code, date)
+    [CodeDate.new(code, date)]
+  end
+
   def initialize(code = nil, date = nil)
-    @code = code
-    @date = date
+    @code = code.to_s
+    @date = date.to_s
     @code ||= "        "
     @date ||= "        "
   end

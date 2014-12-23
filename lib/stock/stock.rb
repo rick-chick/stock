@@ -127,10 +127,16 @@ end
 
 class Daily < Stock
 
+  def self.blank_instances(code, date)
+    CodeDate.blank_instances(code, date).map do |code_date|
+      Daily.new(code_date, nil)
+    end
+  end
+
   def self.read(from ,to, column, hash = {})
     params = [from, to]
     conditions = ""
-    if hash.key?(:code) then
+    if hash.key?(:code) 
       params << hash[:code]
       conditions = "and  code_dates.code = $3"
     end
@@ -165,6 +171,12 @@ end
 class Minute < Stock
   
   attr_accessor :time, :subkey
+
+  def self.blank_instances(code, date)
+    CodeTime.blank_instances(code, date).map do |code_minute|
+      Minute.new(code_minute, nil)
+    end
+  end
 
   def self.read(from ,to, column, hash = {})
     params = [from, to]

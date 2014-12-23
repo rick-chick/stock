@@ -2,6 +2,16 @@ class Date
 
   @@dates = nil
 
+  def self.range(from, to)
+    while not all.include?(from)
+      from = from.next(1)
+    end
+    while not all.include?(to)
+      to = to.prev(1)
+    end
+    all[all.index(from), all.index(to)]
+  end
+
   def self.all
     return @@dates if @@dates
     sql = <<-SQL

@@ -2,7 +2,7 @@ class Stocks < Array
 
   def self.merge(*stocks)
     results  = Stocks.new
-    targets  = stocks.clone
+    targets  = Marshal.load(Marshal.dump(stocks))
     currents = targets.map { |target| target.shift }
     while (compact = currents.compact).length > 0
       min   = compact.min
@@ -12,6 +12,29 @@ class Stocks < Array
         if t and min.subkey == t.subkey
           items << t
           nexts << targets[i].shift
+        else
+          items << nil
+          nexts << t
+        end
+      end
+      currents = nexts
+      results << s = min.clone
+      s.value = yield items
+    end
+    Stocks[*results]
+  end
+
+  def self.merge!(*stocks)
+    results  = Stocks.new
+    currents = stocks.map { |target| target.shift }
+    while (compact = currents.compact).length > 0
+      min   = compact.min
+      items = []
+      nexts = []
+      currents.each_with_index do |t, i|
+        if t and min.subkey == t.subkey
+          items << t
+          nexts << stocks[i].shift
         else
           items << nil
           nexts << t
@@ -40,6 +63,24 @@ class Stocks < Array
     }.map do |stocks|
       s = yield Stocks[*stocks]
       Stocks[*s]
+    end
+  end
+
+  def fill_blank(length=10)
+    type   = first.class
+    code   = first.code
+    blanks = Date.range(first.date, last.date).map do |date|
+      type.blank_instances(code, date)
+    end.flatten
+    Stocks.merge(self, blanks) do |x, y| 
+      x ? x.value : nil
+    end.calc(length) do |stocks|
+      value = nil
+      stocks.reverse_each do |s|
+        next if not s.value
+        value = s.value; break
+      end
+      value
     end
   end
 
@@ -79,12 +120,30 @@ class Stocks < Array
     end
   end
 
+  def dev(length)
+    calc(length) do |stocks|
+      Math.sqrt(calc_dev(stocks, calc_ave(stocks)))
+    end
+  end
+
+  def diff(length=1)
+    calc(length+1) do |stocks|
+      stocks.last.value - stocks.first.value
+    end
+  end
+
   def calc_ave(stocks)
     ave = 0
     stocks.each do |stock|
       ave += stock.value 
     end 
     ave /= stocks.length
+  end
+
+  def ave(length)
+    calc(length) do |stocks|
+      calc_ave(stocks)
+    end
   end
 
   def calc_dev(stocks, ave)
