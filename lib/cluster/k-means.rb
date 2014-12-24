@@ -1,6 +1,6 @@
 class KMeans
 
-  attr_accessor :clusters, :nodes, :centers
+  attr_accessor :clusters, :nodes
 
   def clusterize(input_data, num_of_clusters)
     @nodes    = input_data
@@ -17,6 +17,7 @@ class KMeans
         node.join_to_nearest(@clusters)
       end
     end until any_node_move?
+    @clusters.each {|cluster| cluster.move_center}
   end
 
   def any_node_move?
