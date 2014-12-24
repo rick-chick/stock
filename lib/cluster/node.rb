@@ -1,9 +1,15 @@
 class Node < Array
 
+  attr_accessor :cluster, :prev
+
   def initialize(*array)
     array.map do |node|
       self << Node[*node]
     end
+  end
+
+  def moved?
+    @moved
   end
 
   def distance_to(other)
@@ -24,6 +30,13 @@ class Node < Array
         nearest_cluster = cluster
       end
     end
-    nearest_cluster.add(self)
+    self.cluster = nearest_cluster
+  end
+
+  def cluster=(cluster)
+    prev     = @cluster
+    @cluster = cluster
+    @moved   = (@cluster == prev)
+    @cluster.add(self)
   end
 end

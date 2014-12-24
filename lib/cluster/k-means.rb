@@ -3,15 +3,12 @@ class KMeans
   attr_accessor :clusters, :nodes, :centers
 
   def clusterize(input_data, num_of_clusters)
-
     @nodes    = input_data
-    @clusters = num_of_clusters.times.to_a.map {Cluster.new}
+    @clusters = (1..num_of_clusters).map {Cluster.new}
     @nodes.each_with_index do |array, i|
       @clusters[i % num_of_clusters].add(array)
     end
-
-    prev    = []
-    while prev != @centers
+    begin
       @clusters.each do |cluster|
         cluster.move_center
         cluster.release_nodes
@@ -19,9 +16,14 @@ class KMeans
       @nodes.each do |node|
         node.join_to_nearest(@clusters)
       end
-      prev     = @centers
-      @centers = @clusters.map {|cluster| cluster.center}
+    end until any_node_move?
+  end
+
+  def any_node_move?
+    @nodes.each do |node|
+      return true if node.moved?
     end
+    false
   end
 
 end
