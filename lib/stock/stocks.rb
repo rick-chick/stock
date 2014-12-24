@@ -90,6 +90,13 @@ class Stocks < Array
     end
   end
 
+  def grid(size, min, max)
+    dx = (max - min) / size
+    calc(1) do |stocks|
+      (stocks[0].value / dx).to_i * dx
+    end
+  end
+
   def log
     calc(2) do |stocks|
       Math.log(stocks[1].value / stocks[0].value)
