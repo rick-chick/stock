@@ -1,0 +1,8 @@
+class Fx
+
+  CODES = ["USDJPY" ,"EURJPY" ,"AUDJPY" ,"GBPJPY" ,"NZDJPY" ,"CADJPY" ,"CHFJPY" ,"ZARJPY", 
+    "CNHJPY" ,"EURUSD" ,"GBPUSD" ,"AUDUSD" ,"NZDUSD" ,"HKDJPY" ,"EURGBP" ,"EURAUD",
+    "USDCHF" ,"EURCHF" ,"GBPCHF" ,"AUDCHF" ,"CADCHF" ,"USDHKD", 
+  ]
+
+end
