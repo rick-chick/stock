@@ -66,6 +66,12 @@ class Stocks < Array
     end
   end
 
+  def values
+    map do |stock|
+      stock.value
+    end
+  end
+
   def fill_blank(length=10)
     type   = first.class
     code   = first.code
