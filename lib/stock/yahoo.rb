@@ -33,8 +33,13 @@ class Yahoo
               s.high     = tds.shift.content.gsub(",", "")
               s.low      = tds.shift.content.gsub(",", "")
               s.close    = tds.shift.content.gsub(",", "")
-              s.volume   = tds.shift.content.gsub(",", "")
-              s.adjusted = tds.shift.content.gsub(",", "")
+              if not Fx::CODES.include? code
+                s.volume   = tds.shift.content.gsub(",", "")
+                s.adjusted = tds.shift.content.gsub(",", "")
+              else
+                s.volume   = nil
+                s.adjusted = nil
+              end
               @stocks << s
             end
           end
