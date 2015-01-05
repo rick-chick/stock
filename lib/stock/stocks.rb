@@ -145,6 +145,12 @@ class Stocks < Array
     end
   end
 
+  def delay(length)
+    calc(length) do |stocks|
+      stocks.first.value
+    end
+  end
+
   def calc_ave(stocks)
     ave = 0
     stocks.each do |stock|
