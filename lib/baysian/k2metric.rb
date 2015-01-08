@@ -3,20 +3,22 @@ module Baysian
 
     def self.construct_nodes(nodes_count)
       raise "nodes_count must be greater than zero" if nodes_count < 1
+
       result = []
-      nodes_count.times {|n| result << Baysian::Node.new(n)}
-      (2**(nodes_count-1)).times do |pattern|
-        next if pattern =~ /10+/
-        node = nil
-        pattern.to_s(2).chars.reverse.each_with_index do |bit, rank|
-          next if bit == "0" 
-          if node 
-            node.parents << rank
+      (2**nodes_count-1).times do |n|
+        patern = "%0#{nodes_count}d" % (n+1).to_s(2)
+        next if patern =~ /^0+10*$/
+        child = nil
+        patern.chars.reverse.each_with_index do |bit, rank|
+          next if bit == "0"
+          if child
+            child.parents << rank
           else
-            node = result.find {|target| target.rank = rank}
+            result << child = Baysian::Node.new(rank)
           end
         end
       end
+      result.each { |node| node.parents.sort! }
       result.sort!
     end
 
