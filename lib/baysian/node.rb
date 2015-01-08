@@ -19,5 +19,20 @@ module Baysian
       STRING
     end
 
+    def links_from(link, tree)
+      if @parents.length == 0 
+        link << [@rank]
+      else
+        link << [@rank] + @parents
+        @parents.each do |parent_rank|
+          tree.select do |node| 
+            node.rank == parent_rank
+          end.each do |node|
+            node.links_from(link, tree)
+          end
+        end
+      end
+    end
+
   end
 end
