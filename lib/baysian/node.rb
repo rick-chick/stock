@@ -9,11 +9,7 @@ module Baysian
     end
 
     def <=>(other)
-      if @rank <=> other.rank
-        @rank <=> other.rank
-      else
-        @parents <=> other.parents
-      end
+      (@rank <=> other.rank).nonzero? or @parents <=> other.parents
     end
 
     def to_s
