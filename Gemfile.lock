@@ -31,6 +31,7 @@ GEM
     coderay (1.1.0)
     diff-lcs (1.2.5)
     erubis (2.7.0)
+    ffi (1.9.3)
     ffi (1.9.3-x86-mingw32)
     formatador (0.2.5)
     guard (2.10.5)
@@ -70,6 +71,10 @@ GEM
     parallel (1.2.0)
     pg (0.17.1)
     pg (0.17.1-x86-mingw32)
+    pry (0.10.1)
+      coderay (~> 1.1.0)
+      method_source (~> 0.8.1)
+      slop (~> 3.4)
     pry (0.10.1-x86-mingw32)
       coderay (~> 1.1.0)
       method_source (~> 0.8.1)
@@ -130,6 +135,7 @@ PLATFORMS
   x86-mingw32
 
 DEPENDENCIES
+  guard
   guard-rspec
   guard-spork
   nokogiri

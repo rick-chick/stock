@@ -7,5 +7,6 @@ gem 'standalone_migrations'
 gem 'parallel'
 
 gem 'spork'
+gem 'guard'
 gem 'guard-rspec'
 gem 'guard-spork'
