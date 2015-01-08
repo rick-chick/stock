@@ -22,5 +22,11 @@ module Baysian
       result.sort!
     end
 
+    def self.recursive_each
+      @nodes.select {|node| node.rank == 0}.each do |child|
+        yield child.link_from([])
+      end
+    end
+
   end
 end
