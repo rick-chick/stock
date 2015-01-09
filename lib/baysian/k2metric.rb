@@ -1,11 +1,15 @@
 module Baysian
   class K2Metric
 
-    def construct_nodes(nodes_count)
-      raise "nodes_count must be greater than zero" if nodes_count < 1
+    def initialize(nodes_count)
+      @nodes_count = nodes_count
+    end
+
+    def construct_nodes
+      raise "nodes_count must be greater than zero" if @nodes_count < 1
       @nodes = []
-      (2**nodes_count-1).times do |n|
-        patern = "%0#{nodes_count}d" % (n+1).to_s(2)
+      (2**@nodes_count-1).times do |n|
+        patern = "%0#{@nodes_count}d" % (n+1).to_s(2)
         next if patern =~ /^0+10*$/
         child = nil
         patern.chars.reverse.each_with_index do |bit, rank|

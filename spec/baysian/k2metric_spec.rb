@@ -5,14 +5,14 @@ describe "K2Metric" do
   describe ".construct_nodes" do
 
     context "when one node is given" do
-      let(:nodes) { Baysian::K2Metric.new.construct_nodes(1) }
+      let(:nodes) { Baysian::K2Metric.new(1).construct_nodes }
       specify { expect(nodes.length).to eq 1 }
       specify { expect(nodes[0].rank).to eq 0 }
       specify { expect(nodes[0].parent_ranks.length).to eq 0 }
     end
 
     context "when two nodes are given" do
-      let(:nodes) { Baysian::K2Metric.new.construct_nodes(2) }
+      let(:nodes) { Baysian::K2Metric.new(2).construct_nodes }
       specify { expect(nodes.length).to eq 2 }
       specify { expect(nodes[0].rank).to eq 0 }
       specify { expect(nodes[0].parent_ranks.length).to eq 1 }
@@ -23,7 +23,7 @@ describe "K2Metric" do
     end
 
     context "when three nodes are given" do
-      let(:nodes) { Baysian::K2Metric.new.construct_nodes(3) }
+      let(:nodes) { Baysian::K2Metric.new(3).construct_nodes }
       specify { expect(nodes.length).to eq 5 }
 
       specify { expect(nodes[0].rank).to eq 0 }
