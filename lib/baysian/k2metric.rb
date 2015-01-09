@@ -12,13 +12,13 @@ module Baysian
         patern.chars.reverse.each_with_index do |bit, rank|
           next if bit == "0"
           if child
-            child.parents << rank
+            child.parent_ranks << rank
           else
             result << child = Baysian::Node.new(rank)
           end
         end
       end
-      result.each { |node| node.parents.sort! }
+      result.each { |node| node.parent_ranks.sort! }
       result.sort!
     end
 

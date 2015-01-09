@@ -1,30 +1,30 @@
 module Baysian
   class Node 
     
-    attr_accessor :parents, :rank
+    attr_accessor :parent_ranks, :rank
 
     def initialize(rank)
-      @parents  = []
-      @rank     = rank
+      @parent_ranks   = []
+      @rank           = rank
     end
 
     def <=>(other)
-      (@rank <=> other.rank).nonzero? or @parents <=> other.parents
+      (@rank <=> other.rank).nonzero? or @parent_ranks <=> other.parent_ranks
     end
 
     def to_s
       <<-STRING
         rank:    #{@rank} "
-        parents: #{@parents.join(" ")}
+        parents: #{@parent_ranks.join(" ")}
       STRING
     end
 
     def links_from(link, tree)
-      if @parents.length == 0 
+      if @parent_ranks.length == 0 
         link << [@rank]
       else
-        link << [@rank] + @parents
-        @parents.each do |parent_rank|
+        link << [@rank] + @parent_ranks
+        @parent_ranks.each do |parent_rank|
           tree.select do |node| 
             node.rank == parent_rank
           end.each do |node|
