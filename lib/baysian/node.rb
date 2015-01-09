@@ -19,16 +19,14 @@ module Baysian
       STRING
     end
 
-    def links_from(link, tree)
+    def links(link, tree, &block)
       if @parent_ranks.length == 0 
-        link << [@rank]
+        block.call(link << [@rank])
       else
         link << [@rank] + @parent_ranks
         @parent_ranks.each do |parent_rank|
-          tree.select do |node| 
-            node.rank == parent_rank
-          end.each do |node|
-            node.links_from(link, tree)
+          tree.select {|n| n.rank == parent_rank}.each do |node|
+            node.links(link.dup, tree, &block)
           end
         end
       end
