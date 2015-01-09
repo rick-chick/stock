@@ -5,11 +5,11 @@ describe "node" do
   describe "links_from" do
 
     context "when link is line" do
-      let(:node3) do 
-        node = Baysian::Node.new(2) 
+      let(:node3) do
+        node = Baysian::Node.new(2)
       end
       let(:node2) do
-        node = Baysian::Node.new(1) 
+        node = Baysian::Node.new(1)
         node.parent_ranks << 2
         node
       end
@@ -32,15 +32,15 @@ describe "node" do
         end
         expect(count).to eq 1
       end
-      
+
     end
 
     context "when two head link" do
-      let(:node3) do 
-        node = Baysian::Node.new(2) 
+      let(:node3) do
+        node = Baysian::Node.new(2)
       end
       let(:node2) do
-        node = Baysian::Node.new(1) 
+        node = Baysian::Node.new(1)
         node.parent_ranks << 2
         node
       end
@@ -64,7 +64,7 @@ describe "node" do
         end
         expect(count).to eq 2
       end
-      
+
     end
   end
 
