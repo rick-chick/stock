@@ -3,8 +3,7 @@ module Baysian
 
     def self.construct_nodes(nodes_count)
       raise "nodes_count must be greater than zero" if nodes_count < 1
-
-      result = []
+      @nodes = []
       (2**nodes_count-1).times do |n|
         patern = "%0#{nodes_count}d" % (n+1).to_s(2)
         next if patern =~ /^0+10*$/
@@ -14,17 +13,17 @@ module Baysian
           if child
             child.parent_ranks << rank
           else
-            result << child = Baysian::Node.new(rank)
+            @nodes << child = Baysian::Node.new(rank)
           end
         end
       end
-      result.each { |node| node.parent_ranks.sort! }
-      result.sort!
+      @nodes.each { |node| node.parent_ranks.sort! }
+      @nodes.sort!
     end
 
-    def self.recursive_each
+    def self.links(&block)
       @nodes.select {|node| node.rank == 0}.each do |child|
-        yield child.link_from([])
+        child.links([], @nodes, &block)
       end
     end
 
