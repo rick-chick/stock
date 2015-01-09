@@ -1,7 +1,7 @@
 module Baysian
   class K2Metric
 
-    def self.construct_nodes(nodes_count)
+    def construct_nodes(nodes_count)
       raise "nodes_count must be greater than zero" if nodes_count < 1
       @nodes = []
       (2**nodes_count-1).times do |n|
@@ -21,7 +21,7 @@ module Baysian
       @nodes.sort!
     end
 
-    def self.links(&block)
+    def links(&block)
       @nodes.select {|node| node.rank == 0}.each do |child|
         child.links([], @nodes, &block)
       end
