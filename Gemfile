@@ -5,6 +5,7 @@ gem 'nokogiri'
 gem 'rake'
 gem 'standalone_migrations'
 gem 'parallel'
+gem 'anemone'
 
 gem 'spork'
 gem 'guard'
