@@ -1,4 +1,4 @@
-class KDb
+class KDb 
   
   attr_accessor :splits, :stocks
 
@@ -14,12 +14,20 @@ class KDb
     @stocks  = []
     @splits = []
     date = from
+    data = nil
     while date <= to
+      proxy = Proxy.new
       begin
-        open("http://k-db.com/stocks/#{code}/minutely?date=#{format(date)}&download=csv", "r") do |r|
-          r.readlines[2..-1].each do |line|
+        open("http://k-db.com/stocks/#{code}/minutely?date=#{format(date)}&download=csv", "r", proxy.options) do |r|
+          content = r.readlines[2..-1]
+          raise RejectedError if content.nil?
+          content.each do |line|
             data  = line.split(',')
-            key   = CodeTime.new(code, date, data[1].sub(':', ''))
+            raise RejectedError if data.length == 1
+            raise DateMissingError if date != data[0].gsub('-','')
+            key   = CodeTime.new(code, 
+                                 date, 
+                                 data[1].sub(':', ''))
             stock = Stock.new
             stock.key      = key
             stock.open     = data[2]
@@ -32,9 +40,23 @@ class KDb
             @stocks << stock
           end
         end
+      rescue DateMissingError
+      rescue RejectedError
+        puts "rejected #{proxy.current}. retry with other proxy "
+        read_stocks(code, from, to)
+      rescue Net::ReadTimeout, 
+        Errno::ETIMEDOUT, 
+        OpenURI::HTTPError,
+        Errno::ECONNREFUSED,
+        Errno::ECONNRESET => ex
+        puts "read time error. proxy: #{proxy.current}"
+        proxy.delete
+        read_stocks(code, from, to)
       rescue => ex
+        p data
         p ex.backtrace
         puts ex.message
+        puts ex.class.name
         puts "http://k-db.com/stocks/#{code}/minutely?date=#{format(date)}&download=csv can't open"
       ensure
         date = (Date.parse(date) + 1).strftime("%Y%m%d")
@@ -48,4 +70,17 @@ class KDb
       date = "#{date.year}-#{date.month}-#{date.day}"
     end
   end
+
+  class RejectedError < StandardError
+    def initialize
+      super("rejected")
+    end
+  end
+
+  class DateMissingError < StandardError
+    def initialize
+      super('date is too old or holiday')
+    end
+  end
+
 end
