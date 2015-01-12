@@ -1,3 +1,4 @@
+#!/bin/ruby
 require File.expand_path(File.dirname(__FILE__)) + '/require.rb'
 
 class Command
@@ -20,7 +21,9 @@ class Command
     codes  = args["code"] ? 
       [args["code"]] : @k_db.read_codes(args["to"])
     reader = args["minute"] ? @k_db: @yahoo
-    codes.each do |code|
+    Proxy.get_list
+    thread = args["minute"] ? 8 : 1
+    Parallel.each(codes, :in_threads => thread) do |code|
       next if args["codefrom"] and args["codefrom"] > code 
       while not reader.read_stocks(code, args["from"] ,args["to"])
         sleep 60
@@ -34,7 +37,6 @@ class Command
         stc_cnt  = reader.stocks.inject(0) {|s, stock| s += stock.update }
         puts "update stocks #{code}: #{stc_cnt}/#{reader.stocks.length}"
       end
-      sleep 10 if args["minute"]
     end
   end
 

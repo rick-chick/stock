@@ -84,9 +84,12 @@ class Stock
       @id = row["id"]
     end
     @key.id = @id
-    raise "code_dates already exists" if @key.insert == 0 
+    raise PG::UniqueViolation if @key.insert == 0 
     Db.conn.exec("commit")
     1
+  rescue PG::UniqueViolation => ex
+    Db.conn.exec("rollback")
+    0
   rescue => ex
     Db.conn.exec("rollback")
     p self

@@ -59,6 +59,8 @@ class CodeDate
     params << @date.to_s
     Db.conn.exec(sql, params)
     1
+  rescue PG::UniqueViolation => ex
+    0
   rescue => ex
     p self
     puts ex.message
