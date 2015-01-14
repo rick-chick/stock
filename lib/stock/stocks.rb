@@ -146,6 +146,7 @@ class Stocks < Array
   end
 
   def delay(length)
+    return self if length == 0
     calc(length) do |stocks|
       stocks.first.value
     end
