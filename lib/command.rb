@@ -21,9 +21,7 @@ class Command
     codes  = args["code"] ? 
       [args["code"]] : @k_db.read_codes(args["to"])
     reader = args["minute"] ? @k_db: @yahoo
-    Proxy.get_list
-    thread = args["minute"] ? 8 : 1
-    Parallel.each(codes, :in_threads => thread) do |code|
+    codes.each do |code|
       next if args["codefrom"] and args["codefrom"] > code 
       while not reader.read_stocks(code, args["from"] ,args["to"])
         sleep 60
@@ -38,6 +36,7 @@ class Command
         puts "update stocks #{code}: #{stc_cnt}/#{reader.stocks.length}"
       end
     end
+    sleep 7 if args["minute"]
   end
 
 end

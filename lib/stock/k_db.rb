@@ -16,9 +16,8 @@ class KDb
     date = from
     data = nil
     while date <= to
-      proxy = Proxy.new
       begin
-        open("http://k-db.com/stocks/#{code}/minutely?date=#{format(date)}&download=csv", "r", proxy.options) do |r|
+        open("http://k-db.com/stocks/#{code}/minutely?date=#{format(date)}&download=csv", "r") do |r|
           content = r.readlines[2..-1]
           raise RejectedError if content.nil?
           content.each do |line|
@@ -42,15 +41,15 @@ class KDb
         end
       rescue DateMissingError
       rescue RejectedError
-        puts "rejected #{proxy.current}. retry with other proxy "
+        #puts "rejected #{proxy.current}. retry with other proxy "
         read_stocks(code, from, to)
       rescue Net::ReadTimeout, 
         Errno::ETIMEDOUT, 
         OpenURI::HTTPError,
         Errno::ECONNREFUSED,
         Errno::ECONNRESET => ex
-        puts "read time error. proxy: #{proxy.current}"
-        proxy.delete
+        #puts "read time error. proxy: #{proxy.current}"
+        #proxy.delete
         read_stocks(code, from, to)
       rescue => ex
         p data
