@@ -53,19 +53,17 @@ module Bayesian
     #note 
     # cpt(ijk) can take only one child node and some parents of the child
     # ie. i is fixed. j,k are vary
-    def score(ijk, q_i, r_i)
-      ij = {}
+    def score(ijk, r_i)
+      ij      = {}
+      ret = 0
       ijk.each do |key, n_ijk|
-        p_i = key[1..q_i]
+        p_i = key[1..-1]
         ij[p_i] ||= 0
         ij[p_i] += n_ijk
+        ret += Math.lgamma(1+n_ijk)[0]
       end
-      ret = q_i*Math.log(Math.gamma(r_i))
-      ij.each  do |key, n_ij| 
-        (1...r_i+n_ij).each {|m| ret -= Math.log(m)}
-      end
-      ijk.each do |key, n_ijk| 
-        (1...1+n_ijk).each {|m| ret += Math.log(m)}
+      ij.each do |key, n_ij|
+        ret += Math.lgamma(r_i)[0] - Math.lgamma(r_i+n_ij)[0]
       end
       ret
     end
