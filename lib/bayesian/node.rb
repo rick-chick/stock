@@ -6,7 +6,7 @@ module Bayesian
       @parents = []
     end
 
-    attr_accessor :rank, :parents
+    attr_accessor :rank, :parents, :score
 
   end
 end

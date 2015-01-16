@@ -11,14 +11,14 @@ module Bayesian
     def each(&block)
       (0...@num_nodes).each {|n| @nodes << Bayesian::Node.new(n)}
       @nodes.each do |child|
-        best = -Float::MAX
+        child.score = -Float::MAX
         score = block.call(child)
-        best  = [score, best].max
+        child.score = [score, child.score].max
         (child.rank+1...@num_nodes).each do |parent_rank|
           child.parents << parent_rank
           score = block.call(child)
-          if score > best
-            best = score
+          if score > child.score
+            child.score = score
           else
             child.parents.delete parent_rank
           end

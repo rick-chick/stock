@@ -1,12 +1,12 @@
 require File.expand_path(File.dirname(__FILE__)) + '/require.rb'
 
 to        = Date.latest
-from      = to.prev(3000)
+from      = to.prev(3500)
 closes    = Daily.closes(from ,to, code: 9984)
 log       = closes.fill_blank.log
-grid_size = t3
+grid_size = 4
 cluster   = Cluster::KMeans.new(log.values, grid_size)
-bayesian  = Bayesian::K2Metric.new(10)
+bayesian  = Bayesian::K2Metric.new(20)
 
 cluster.clusterize
 grd_log = log.calc(1) do |stocks|
@@ -37,3 +37,11 @@ bayesian.nodes.each do |node|
     puts " #{parent}"
   end
 end
+
+puts "scores"
+total_scoer = 0
+bayesian.nodes.each do |node|
+  puts "#{node.rank} #{node.score}"
+  total_scoer += node.score if node.score
+end
+puts total_scoer
