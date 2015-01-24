@@ -67,5 +67,13 @@ module Bayesian
       end
       ret
     end
+    
+    def total_score
+      score = 0
+      @nodes.each do |node|
+        score += node.score if node.score
+      end
+      score
+    end
   end
 end
