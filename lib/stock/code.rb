@@ -16,20 +16,41 @@ class Code
     sql =<<-SQL
       select   volume
       from (
-        select   volume
-               ,row_number() over (order by date desc) as row_num
-          from  stocks
-					    , code_dates
-         where  code = $1
-				   and  code_dates.id   = stocks.id
+        select volume
+             , row_number() over (order by date desc) as row_num
+          from stocks
+					   , code_dates
+         where code = $1
+				   and code_dates.id   = stocks.id
        ) stocks
-       where  row_num < 10
+         where row_num < 10
     SQL
     params = [code]
     rows = Db.conn.exec(sql, params)
     result = gcd_euclid(rows[0]["volume"], rows[0]["volume"])
     rows.each do |row|
       result = gcd_euclid(row["volume"], result)
+    end
+    return result
+  end
+
+  def self.tradable_codes(date, daily_minute_counte)
+    sql =<<-SQL
+      select code
+        from (select code
+                   , count(code) count
+                from code_times
+               where date = $1
+            group by code
+                   , date
+             ) count
+       where count > $2
+    SQL
+    params = [date, daily_minute_counte]
+    rows = Db.conn.exec(sql, params)
+    result = []
+    rows.each do |row|
+      result << row["code"]
     end
     return result
   end
