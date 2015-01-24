@@ -173,7 +173,7 @@ end
 
 class Minute < Stock
   
-  attr_accessor :time, :subkey
+  attr_accessor :time
 
   def self.blank_instances(code, date)
     CodeTime.blank_instances(code, date).map do |code_minute|
@@ -214,4 +214,5 @@ class Minute < Stock
     end
     stocks
   end
+
 end
