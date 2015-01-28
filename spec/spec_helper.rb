@@ -1,7 +1,7 @@
 require 'rubygems'
 require 'spork'
 require 'rspec'
-require File.expand_path(File.dirname(__FILE__)) + '/../lib/require.rb'
+require File.dirname(File.expand_path(__FILE__)) + '/../lib/stock.rb'
 
 #uncomment the following line to use spork with the debugger
 #require 'spork/ext/ruby-debug'

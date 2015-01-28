@@ -1,4 +1,4 @@
-require File.expand_path(File.dirname(__FILE__)) + '/require.rb'
+require File.dirname(File.expand_path(__FILE__)) + '/stock.rb'
 
 to        = Date.latest
 from      = to.prev(3500)
