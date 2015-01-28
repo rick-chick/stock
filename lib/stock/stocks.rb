@@ -144,9 +144,15 @@ class Stocks < Array
     end
   end
 
-  def dev(length)
-    calc(length) do |stocks|
-      Math.sqrt(calc_dev(stocks, calc_ave(stocks)))
+  def dev(length, &block) 
+    if not block
+      calc(length) do |stocks|
+        Math.sqrt(calc_dev(stocks, calc_ave(stocks)))
+      end
+    else
+      calc(length) do |stocks|
+        Math.sqrt(calc_dev(stocks, block.call(stocks)))
+      end
     end
   end
 
@@ -184,5 +190,4 @@ class Stocks < Array
     end 
     stddev /= stocks.length
   end
-
 end
