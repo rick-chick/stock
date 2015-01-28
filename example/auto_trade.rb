@@ -183,7 +183,7 @@ end
 player   = Player.new
 agent    = MatsuiStock.new
 signal   = Decide.new
-agent.a  = ARGV[2]
+agent.pin_code  = ARGV[2]
 
 agent.log_in(ARGV[0], ARGV[1])
 codes    = (agent.open_hands.keys + codes).uniq
