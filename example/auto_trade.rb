@@ -1,6 +1,6 @@
 dir = File.dirname(File.expand_path(__FILE__))
 dir = File.dirname(File.expand_path(__FILE__))
-require "#{dir}/../lib/require"
+require "#{dir}/../lib/stock"
 
 while true
   sleep 1
