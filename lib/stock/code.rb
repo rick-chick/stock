@@ -47,7 +47,7 @@ class Code
     return result
   end
 
-  def self.tradable_codes(date, daily_minute_counte)
+  def self.tradable_codes(date, daily_minute_count)
     sql =<<-SQL
       select code
         from (select code
@@ -59,7 +59,7 @@ class Code
              ) count
        where count > $2
     SQL
-    params = [date, daily_minute_counte]
+    params = [date, daily_minute_count]
     rows = Db.conn.exec(sql, params)
     result = []
     rows.each do |row|
