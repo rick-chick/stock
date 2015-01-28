@@ -18,6 +18,9 @@ class Command
     }.merge(options)
     args["from"] ||= Date.latest_after_a_day
     args["to"]   ||= Date.now
+    if args["minute"] and args["blankskip"]
+      codes = Code.have_some_trade_at(Date.latest)
+    end
     codes  = args["code"] ? 
       [args["code"]] : @k_db.read_codes(args["to"])
     reader = args["minute"] ? @k_db: @yahoo
@@ -44,6 +47,6 @@ end
 command = Command.new
 case ARGV.shift
 when "update"
-  command.update(ARGV.getopts("", "from:", "to:", "code:", "codefrom:", "init", "minute"))
+  command.update(ARGV.getopts("", "from:", "to:", "code:", "codefrom:", "init", "minute", "blankskip"))
 else
 end

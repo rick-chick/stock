@@ -12,6 +12,19 @@ class Code
     end
   end
 
+  def self.have_some_trade_at(date)
+    sql = <<-SQL
+      select distinct code
+        from code_dates
+       where date = $1
+      order by code
+    SQL
+    params = [date]
+    Db.conn.exec(sql, params).inject([]) do |result,row|
+      result << row["code"]
+    end
+  end
+
   def self.unit(code)
     sql =<<-SQL
       select   volume
