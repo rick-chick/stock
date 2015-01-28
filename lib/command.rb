@@ -35,8 +35,8 @@ class Command
         stc_cnt  = reader.stocks.inject(0) {|s, stock| s += stock.update }
         puts "update stocks #{code}: #{stc_cnt}/#{reader.stocks.length}"
       end
+      sleep 5 if args["minute"]
     end
-    sleep 7 if args["minute"]
   end
 
 end
