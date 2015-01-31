@@ -166,11 +166,11 @@ class Player
   end
 
   def have_order_to_buy?(code)
-    @buy_order.keys.include? code
+    @buy_order.key? code
   end
 
   def have_order_to_sell?(code)
-    @sell_order.keys.include? code
+    @sell_order.key? code
   end
 
   def have(code)
