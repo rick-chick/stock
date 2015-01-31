@@ -197,20 +197,21 @@ while true
   codes.each do |code|
     begin
       status = agent.watch(code)
-      cost   = status[:price] * status[:unit]
+      price  = status[:price]
+      unit   = status[:unit]
+      cost   = price * unit
       player.check_contract(agent.open_hands)
-      signal.increment(code, status[:price])
+      signal.increment(code, price)
       case signal.buy?(code)
       when Decide::BUY
         if player.order_to_buy?(code, cost)
-          agent.buy(code, status[:price], status[:unit])
+          agent.buy(code, price, unit)
         end
       when Decide::SELL
         if player.order_to_sell?(code, cost)
-          agent.sell(code, status[:price], player.hands[code][:volume])
+          agent.sell(code, price, player.hands[code][:volume])
         end
       when Decide::PENDING
-        #
       end
     rescue => ex
       Log.puts ex.message.to_s
