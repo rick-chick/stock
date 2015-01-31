@@ -1,5 +1,5 @@
 #!/bin/ruby
-require File.dirname(File.expand_path(__FILE__)) + '/stock.rb'
+require File.dirname(File.expand_path(__FILE__)) + '/../lib/stock.rb'
 
 class Command
 
