@@ -142,27 +142,27 @@ class Player
     return false if @amount < price 
     return false if self.have_order_to_buy? code
     return false if self.have code
-    Log.puts "i want to buy #{code} at #{price}"
+    Log.puts "i want to buy #{code} at #{price}. amount: #{@amount}"
     return true
   end
 
   def wish_to_sell?(code, price)
     return false if not self.have code
     return false if self.have_order_to_sell? code
-    Log.puts "i want to sell #{code} at #{price}"
+    Log.puts "i want to sell #{code} at #{price}. amount: #{@amount}"
     return true
   end
 
   def order_to_buy?(code, price)
     return if not wish_to_buy?(code, price)
     @buy_order[code] = price
-    Log.puts "i order to buy #{code} at #{price}"
+    Log.puts "i order to buy #{code} at #{price}. amount: #{@amount}"
   end
 
   def order_to_sell?(code, price)
     return if not wish_to_sell?(code, price)
     @sell_order[code] = price
-    Log.puts "i order to sell #{code} at #{price}"
+    Log.puts "i order to sell #{code} at #{price}. amount: #{@amount}"
   end
 
   def have_order_to_buy?(code)
