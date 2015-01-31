@@ -174,8 +174,8 @@ class Player
   end
 
   def have(code)
-    @hands.include? code
     Log.puts @hands.to_s
+    @hands.key? code
   end
 
 end
