@@ -215,8 +215,7 @@ while true
     rescue => ex
       Log.puts ex.message.to_s
       Log.puts ex.backtrace.to_s
-    ensure
-      break if Time.now.strftime('%H%M') == '1500'
     end
   end
+  break if Time.now.strftime('%H%M') >= '1500'
 end
