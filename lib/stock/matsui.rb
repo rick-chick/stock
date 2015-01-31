@@ -28,11 +28,11 @@ class MatsuiStock
   end
 
   def buy(code, price, volume)
-    order(code, price, volume, 'tradeKbn')
+    order(code, price, volume, 'tradeKbn_13')
   end
 
   def sell(code, price, volume)
-    order(code, price, volume, 'tradeKbn')
+    order(code, price, volume, 'tradeKbn_111')
   end
 
   def order(code, price, volume, radio_name)
@@ -40,7 +40,7 @@ class MatsuiStock
       form = @driver.find_element(:tag_name, 'form')
       form.find_element(:name ,'orderNominal').send_key(volume)
       form.find_element(:name ,'orderPrc').send_key(price)
-      form.find_element(:name , radio_name).click
+      form.find_element(:id , radio_name).click
       form.find_element(:name, 'tyukakuButton').click
       @driver.find_element(:name, 'pinNo').send_key(@pin_code)
       @driver.find_elements(:tag_name, 'input')[1].click
