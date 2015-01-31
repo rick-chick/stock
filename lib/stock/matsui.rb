@@ -23,10 +23,8 @@ class MatsuiStock
     @driver.switch_to.frame(0)
     sleep 1
     @driver.navigate.to @driver.find_elements(:tag_name, 'a')[1].attribute('href')
-    sleep 1
     @driver.navigate.to @driver.find_elements(:tag_name, 'frame')[1]
     .attribute('src')
-    sleep 1
   end
 
   def buy(code, price, volume)
@@ -81,12 +79,12 @@ class MatsuiStock
       element.send_key(code)
       element.submit
       @driver.switch_to.window @driver.window_handles[1]
+      sleep 1
       yield
     rescue => ex
       puts ex.message
       puts ex.backtrace
     ensure
-      sleep 1
     end
   end
 
