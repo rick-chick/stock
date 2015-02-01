@@ -117,6 +117,46 @@ class MatsuiStock
     ret
   end
 
+  def orders
+    ret = {}
+    begin
+      @driver.switch_to.window @driver.window_handles[0]
+      element = @driver.find_elements(:tag_name, 'a')[0]
+      element.click
+      src = @driver.find_elements(:tag_name, 'frame')[-1].attribute('src')
+      @driver.navigate.back
+      open(src) do |page|
+        doc = Nokogiri.parse(page.read)
+        doc.css('form table')[8].css('tr')[1..-1].each do |tr|
+          td     = tr.css('td')
+          code   = td[2].text.scan(/\[.+\](\d+)/)[0][0]
+          trade  = td[4].text
+          volume = td[5].text.gsub(/[^\d]/,'')
+          if td[6].text.include? '成行'
+            price  = 0
+          else
+            price  = td[6].text.gsub(/[^\d]/,'')
+          end
+          date   = Time.now.strftime('%Y') + td[7].text.scan(/\d{2}\/\d{2}/)[0].sub('/','')
+          time   = td[7].text.scan(/\d{2}:\d{2}/)[0]
+          ret[code] ||= []
+          ret[code] << hash = {}
+          hash[:trade]  = trade
+          hash[:volume] = volume
+          hash[:price] = price
+          hash[:date] = date
+          hash[:time] = time
+        end
+      end
+    rescue => ex
+      puts ex.message
+      puts ex.backtrace
+    ensure
+      sleep 1
+    end
+    ret
+  end
+
   def exit
     true
   end
