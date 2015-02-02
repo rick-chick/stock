@@ -137,6 +137,9 @@ class Daily < Stock
   end
 
   def self.read(from ,to, column, hash = {})
+    if not hash.kind_of? Hash 
+      raise "Stock.read(from, to, column, options) options must be hash"
+    end
     params = [from, to]
     conditions = ""
     if hash.key?(:code) 
@@ -182,6 +185,10 @@ class Minute < Stock
   end
 
   def self.read(from ,to, column, hash = {})
+    if not hash.kind_of? Hash 
+      raise "Stock.read(from, to, column, options) options must be hash"
+    end
+    params = [from, to]
     params = [from, to]
     conditions = ""
     if hash.key?(:code) then
