@@ -3,9 +3,7 @@ dir = File.dirname(File.expand_path(__FILE__))
 require "#{dir}/../lib/stock"
 
 class Log
-
   class << self
-    
     def initialize
       File.open('log.txt' , 'w') do |file|
         file << ''
@@ -34,6 +32,7 @@ class Decide
   end
 
   def increment(code, price)
+    return if price == 0
     date  = Time.now.strftime('%Y%m%d')
     time  = Time.now.strftime('%H%M')
     if @stocks[code].last.key.time == time or 
@@ -54,7 +53,7 @@ class Decide
     dev    = closes.dev(81) {|stocks| stocks.remez(w81).last.value}
     a = Stocks.merge(closes , remez8, dev) do |c,d,e|
       next if not e
-      c.value > (d.value + e.value)
+      c.value > (d.value + e.value / 2)
     end
 
     if @last_signals.key? code
@@ -144,6 +143,14 @@ class Player
     Log.puts "i order to sell #{code} at #{price}. amount: #{@amount}"
   end
 
+  def fail_to_buy(code)
+    @buy_order.delete code
+  end
+
+  def fail_to_sell(code)
+    @sell_order.delete code
+  end
+
   def have_order_to_buy?(code)
     @buy_order.key? code
   end
@@ -206,10 +213,18 @@ while true
       when Decide::BUY
         if player.order_to_buy?(code, cost)
           agent.buy(code, price, unit)
+          order = agent.orders.first
+          if not order[0] == code
+            player.fail_to_buy(code)
+          end
         end
       when Decide::SELL
         if player.order_to_sell?(code, cost)
           agent.sell(code, price, player.hands[code][:volume])
+          order = agent.orders.first
+          if not order[0] == code 
+            player.fail_to_sell(code)
+          end
         end
       when Decide::PENDING
       end
