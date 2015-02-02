@@ -97,8 +97,8 @@ class Stocks < Array
     end
   end
 
-  def log
-    calc(2) do |stocks|
+  def log(length=1)
+    calc(length+1) do |stocks|
       Math.log(stocks[1].value / stocks[0].value)
     end
   end
