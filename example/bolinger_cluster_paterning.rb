@@ -2,23 +2,6 @@ dir = File.dirname(File.expand_path(__FILE__))
 dir = File.dirname(File.expand_path(__FILE__))
 require "#{dir}/../lib/stock"
 
-class Log
-  class << self
-    def initialize
-      File.open('log.txt' , 'w') do |file|
-        file << ''
-      end
-    end
-  end
-
-  def self.puts(line)
-    STDOUT << line + "\n"
-    File.open('log.txt', 'a') do |file|
-      file << line + "\n"
-    end
-  end
-end
-
 learning = 2000
 to       = Date.latest
 from     = to.prev(learning)
@@ -27,10 +10,22 @@ codes    = Code.tradable_codes(to.prev(1), 250)
 bol_length   = (10..100)
 cluster_size = (5..20)
 log_size     = (1..50)
+log          = Log.new('bolinger_cluster_paterning/test')
 
-codes.each do |code|
+def synchronize
+  while true
+    File.open('lock', 'w') do |file|
+      return yield if file.flock(File::LOCK_EX|File::LOCK_NB)
+    end
+  end
+end
+
+codes.each {|code| log.puts code} 
+Parallel.each(codes) do |code|
   begin
-    closes = Daily.adjusteds(from ,to, code: code)
+    closes = synchronize do 
+      Daily.adjusteds(from ,to, code: code)
+    end
     raise "#{code} length is too short" if not closes.length > 1500
 
     bols  = []
@@ -91,16 +86,20 @@ codes.each do |code|
       end
     end
 
-    Log.puts code
-    Log.puts max_sum          
-    Log.puts max_log_size     
-    Log.puts max_cluster_size 
     center = max_cluster.clusters.find do |c|
       c.enclose?(bols.last)
     end.center
-    Log.puts max_sums[center][max_log_size]
+
+    synchronize do
+      log.puts code 
+      log.puts max_sum
+      log.puts max_log_size
+      log.puts max_cluster_size
+      log.puts max_sums[center][max_log_size]
+    end
+
   rescue => ex
-    Log.puts ex.message
-    Log.puts ex.backtrace
+    log.puts ex.message
+    log.puts ex.backtrace.to_s
   end
 end
