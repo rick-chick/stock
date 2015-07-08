@@ -2,7 +2,7 @@
 class Board
   attr_accessor :code, :price, :sell, :buy, :sell_volume, :buy_volume, 
     :open, :open_time, :high, :high_time, :low, :low_time, 
-    :time, :volume, :tick, :diff, :rate
+    :time, :volume, :tick, :diff, :rate, :closed
 
   def initialize(hash = {})
     hash = {time: Time.now
@@ -24,6 +24,11 @@ class Board
     @buy_volume = hash[:buy_volume]
     @volume = hash[:volume]
     @tick = hash[:tick]
+    @closed = hash[:closed]
+  end
+
+  def closed?
+    @closed
   end
 end
 

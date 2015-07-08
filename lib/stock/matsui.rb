@@ -217,7 +217,10 @@ class MatsuiStock
         hash[:code] = code
         divs = line.css('td.td02 div')
         hash[:price] = divs[0].text.scan(/[.\d]+/)[0].to_f
-        hash[:time] = divs[1].text.scan(/[\d:]+/)[0]
+        scans = divs[1].text.scan(/([^\d]*)([\d:]+)/)[0]
+        next if not scans
+        hash[:closed] = scans[0] != ""
+        hash[:time] = scans[1]
         divs = line.css('td.td03 div')
         hash[:diff] = divs[0].text.scan(/[-.\d]+/)[0].to_f
         hash[:rate] = divs[1].text.scan(/[-.\d]+/)[0].to_f
@@ -243,6 +246,7 @@ class MatsuiStock
       end
       result
     end
+
   end
 end
 

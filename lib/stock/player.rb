@@ -4,56 +4,62 @@ class Player
   attr_accessor :boards, :hands, :orders, :codes, :tick, :volume
 
   def decide(&agent)
+    orders = []
     case hold_status
     when HoldStatus::ASSEMBLING
       case assemble_status 
       when AssembleStatus::BE_CONTRACTED
-        @orders.find_all {|o| o.orderd? }.each do |order|
+        oreders = @orders.find_all {|o| o.orderd? }.map do |order|
           order.force = true
-          agent.call order
+          order
         end
       end
     else
-      case 
+      case order_status
       when OrderStatus::BUY
         case hold_status
         when HoldStatus::NONE
-          buy.each {|order| agent.call order}
+          orders = buy
         when HoldStatus::BUY
         when HoldStatus::SELL
-          repay.each {|order| agent.call order}
-          buy.each {|order| agent.call order}
+          orders = [repay, buy]
         end
       when OrderStatus::SELL
         case hold_status
         when HoldStatus::NONE
-          sell.each {|order| agent.call order}
+          orders = sell
         when HoldStatus::BUY
-          repay.each {|order| agent.call order}
-          sell.each {|order| agent.call order}
+          orders = [repay, sell]
         when HoldStatus::SELL
         end
       when OrderStatus::LOSS_CUT
         case hold_status
         when HoldStatus::NONE
         when HoldStatus::BUY
-          repay.each {|order| agent.call order}
+          orders = repay
         when HoldStatus::SELL
-          repay.each {|order| agent.call order}
+          orders = repay
+        end
+      when OrderStatus::PENDING
+        case hold_status
+        when HoldStatus::NONE
+        when HoldStatus::BUY
+        when HoldStatus::SELL
         end
       end
     end
+    orders.flatten.each {|order| agent.call order }
   end
 
   def buy
     result = []
-    board1 = @board.find {|b| b.code == @codes[0] }
+    board1 = @boards.find {|b| b.code == @codes[0] }
     result << Order::Buy.new(
       code: @codes[0],
       price: board1.buy_price + @tick, 
       volume: @volume, 
     )
-    board2 = @board.find {|b| b.code == @codes[0] }
+    board2 = @boards.find {|b| b.code == @codes[1] }
     result << Order::Sell.new(
       code: @codes[1],
       price: board2.sell_price - @tick,
@@ -142,6 +148,7 @@ class Player
   end
 
   class OrderUndefinedCodeError < StandardError; end
+  class InvalidBoadError < StandardError; end
 
 end
 
