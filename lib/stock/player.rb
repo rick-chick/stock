@@ -52,34 +52,36 @@ class Player
   end
 
   def buy
+    validate_board
     result = []
     board1 = @boards.find {|b| b.code == @codes[0] }
     result << Order::Buy.new(
       code: @codes[0],
-      price: board1.buy_price + @tick, 
+      price: board1.buy + @tick, 
       volume: @volume, 
     )
     board2 = @boards.find {|b| b.code == @codes[1] }
     result << Order::Sell.new(
       code: @codes[1],
-      price: board2.sell_price - @tick,
+      price: board2.sell - @tick,
       volume: @volume,
     )
     result
   end
 
   def sell
+    validate_board
     result = []
     board1 = @boards.find {|b| b.code == @codes[0] }
     result << Order::Sell.new(
       code: @codes[0],
-      price: board1.sell_price - @tick, 
+      price: board1.sell - @tick, 
       volume: @volume,
     )
-    board2 = @boards.find {|b| b.code == @codes[0] }
+    board2 = @boards.find {|b| b.code == @codes[1] }
     result << Order::Buy.new(
       code: @codes[1],
-      price: board2.buy_price + @tick,
+      price: board2.buy + @tick,
       volume: @volume,
     )
     result
@@ -100,6 +102,12 @@ class Player
       end
     end
     result
+  end
+
+  def validate_board
+    raise InvalidBoadError if not @boards or @boards.length == 0
+    raise InvalidBoadError if not @boards.find {|b| b.code == @codes[0]}
+    raise InvalidBoadError if not @boards.find {|b| b.code == @codes[1]}
   end
 
   def order_satus 
