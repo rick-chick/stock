@@ -23,8 +23,7 @@ class MatsuiStock
     @driver.switch_to.frame(0)
     sleep 1
     @driver.navigate.to @driver.find_elements(:tag_name, 'a')[1].attribute('href')
-    @driver.navigate.to @driver.find_elements(:tag_name, 'frame')[1]
-    .attribute('src')
+    @driver.navigate.to @driver.find_elements(:tag_name, 'frame')[1].attribute('src')
   end
 
   def buy(code, price, volume)
