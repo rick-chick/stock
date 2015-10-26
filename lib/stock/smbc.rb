@@ -1,11 +1,4 @@
 #coding: utf-8
-require 'selenium-webdriver'
-require 'open-uri'
-require 'nokogiri'
-require File.dirname(File.expand_path(__FILE__)) + '/order'
-require File.dirname(File.expand_path(__FILE__)) + '/status'
-require File.dirname(File.expand_path(__FILE__)) + '/player'
-require File.dirname(File.expand_path(__FILE__)) + '/board'
 
 class WebDriver
   def self.instance
@@ -52,13 +45,19 @@ class SmbcStock
         url = @driver.find_element(:css, '#printzone > div.con_tbl_basic01 > table > tbody > tr > td > div:nth-child(5) > table > tbody > tr:nth-child(2) > td:nth-child(5) > table > tbody > tr:nth-child(2) > td > div > div:nth-child(2) > span > a').attribute('href')
         @driver.navigate.to url
         edit_new_order_page(order)
-      when Order::RepayBuy, Order::RepaySell
+      when Order::Repay
+        @driver.navigate.to(TOP_URL + order.edit_url)
+        edit_new_order_page(order)
       else
         throw UndefinedTradeTypeError
       end
     else
-      @driver.navigate.to(TOP_URL + order.edit_url)
-      edit_order_page(order)
+      if order.edit_url
+        @driver.navigate.to(TOP_URL + order.edit_url)
+        edit_order_page(order)
+      else
+        order.status = Status::Dinied
+      end
     end
     @driver.navigate.to @torihiki_url
     order
@@ -67,58 +66,78 @@ class SmbcStock
   def cancel(order)
     return order if not order.cancel_url
     @driver.navigate.to(TOP_URL + order.cancel_url)
-    e = @wait.until { @driver.find_element(:css, '#printzone > div.ml15.mr15 > table > tbody > tr:nth-child(4) > td > div > div.mt15 > table > tbody > tr > td > table > tbody > tr:nth-child(1) > td > form > input[type="image"]:nth-child(17)') }
+    es = @driver.find_elements(:css, '#printzone form input[type="image"]' )
+    e = es.find { |e| e.attribute('alt') == '注文を取り消す' }
+    if not e
+      order.status = Status::Denied.new
+      @driver.navigate.to @torihiki_url
+      return order
+    end
     e.send_key ' '
-    order.status = Status::Cancel.new
-    @driver.navigate.to @torihiki_url
-    es = @wait.until { @driver.find_elements(:css, '#printzone > div.con_tbl_basic02 > div:nth-child(4) > span') }
+    es = @driver.find_elements(:css, '#printzone > div.con_tbl_basic02 > div span span')
     if es.length > 0 
-      es[0].send_key ' '
-      e = @wait.until {@driver.find_element(:css, '#printzone > div.ml15.mr15 > div:nth-child(3)')}
-      order.id = e.text.scan(/([\d]*)番/)[0][0]
-      order.status = Status::Edited.new
+      order.id = es[0].text.scan(/([\d]*)番/)[0][0]
+      order.status = Status::Cancel.new
     else
       order.status = Status::Denied.new
     end
+    @driver.navigate.to @torihiki_url
     order
   end
 
   def edit_order_page(order)
     raise InvalidOrderEditError if order.edit_volume and order.edit_price
-    if order.edit_volume
-      e = @wait.until { @driver.find_element(:css, '#printzone > div.con_tbl_basic02 > table > tbody > tr > td > form > div > table > tbody > tr:nth-child(4) > td > div > div.con_mrg03 > table > tbody > tr > td:nth-child(1) > div.con_mrg04 > table > tbody > tr:nth-child(7) > td > table > tbody > tr > td:nth-child(1) > input[type="text"]') }
-      @driver.action.send_keys(:tab).peform while not e.displayed?
-      e.send_key order.volume
-    end
+    es = @driver.find_elements(:css, '#isuryo > table > tbody > tr:nth-child(1) > td:nth-child(1) > input[type="text"]') 
+    es[0].send_key(order.volume) if es.length > 0
     if order.edit_price
       if not order.force
-        e = @wait.until { @driver.find_element(:css, '#printzone > div.con_tbl_basic02 > table > tbody > tr > td > form > div > table > tbody > tr:nth-child(4) > td > div > div.con_mrg03 > table > tbody > tr > td:nth-child(1) > div.con_mrg04 > table > tbody > tr:nth-child(9) > td > table > tbody > tr > td:nth-child(3) > input[type="text"]') }
-        @driver.action.send_keys(:tab).perform while not e.displayed?
-        e.send_key order.price
+        es = @driver.find_elements(:css, '#printzone > div.con_tbl_basic02 > table > tbody > tr > td > form > div > table > tbody > tr:nth-child(4) > td > div > div.con_mrg03 > table > tbody > tr > td:nth-child(1) > div.con_mrg04 > table > tbody > tr:nth-child(9) > td input[type="text"]')
+        if es.length == 0 
+          order.status = Status::Denied.new
+          return 
+        end
+        es[0].send_key order.price
       else
-        e = @wait.until { @driver.find_element(:css, '#nari') }
-        @driver.action.send_keys(:tab).perform while not e.displayed?
-        e.send_key ' '
+        es = @driver.find_elements(:css, '#j')
+        if es.length == 0
+          order.status = Status::Denied.new
+          return 
+        end
+        es[0].send_key ' '
       end
     end
-    @driver.action.send_keys(:return).perform
-    es = @wait.until { @driver.find_elements(:css, '#printzone > div.ml15.mr15 > div.con_mrg06 > table > tbody > tr:nth-child(4) > td > div > div.mt10 > table > tbody > tr > td > table > tbody > tr:nth-child(1) > td > div:nth-child(1) > form > input[type="image"]:nth-child(16)') }
+    es = @driver.find_elements(:css, '#tojit')
+    es[0].send_key ' ' if es.length > 0
+    es = @driver.find_elements(:css, '#printzone form input[type="image"]')
+    e = es.find {|e| e.attribute('alt') =~ /内容を確認する/ }
+    if not e
+      order.status = Status::Denied.new
+      return 
+    end
+    e.send_key ' '
+    es = @driver.find_elements(:css, '#printzone input[type="image"]')
+    e = es.find {|e| e.attribute('alt') =~ /注文/ }
+    if not e
+      order.status = Status::Denied.new
+      return 
+    end
+    e.send_key ' '
+    es = @driver.find_elements(:css, '#printzone > form > div.con_tbl_basic02 > table > tbody > tr > td > div:nth-child(2) > span > span')
     if es.length > 0 
-      es[0].send_key ' '
-      e = @wait.until {@driver.find_element(:css, '#printzone > div.ml15.mr15 > div:nth-child(3)')}
-      order.id = e.text.scan(/([\d]*)番/)[0][0]
+      order.id = es[0].text.scan(/([\d]*)番/)[0][0]
       order.status = Status::Edited.new
     else
       order.status = Status::Denied.new
     end
-    order
   end
 
   def edit_new_order_page(order)
-    e = @wait.until { @driver.find_element(:css, '#imeig > table > tbody > tr > td:nth-child(1) > input[type="text"]:nth-child(2)') }
-    @driver.action.send_keys(:tab).perform while not e.displayed? 
-    e.location_once_scrolled_into_view
-    e.send_key order.code
+    es = @driver.find_elements(:css, '#imeig > table > tbody > tr > td:nth-child(1) > input[type="text"]:nth-child(2)')
+    if es.length > 0 
+      @driver.action.send_keys(:tab).perform while not es[0].displayed? 
+      es[0].location_once_scrolled_into_view
+      es[0].send_key order.code
+    end
     if order.force
       @driver.find_element(:css, '#j').send_key ' '
     else
@@ -131,10 +150,23 @@ class SmbcStock
     es[0].send_key ' ' if es.length > 0 
     es = @driver.find_elements(:css, '#tojit')
     es[0].send_key ' ' if es.length > 0
-    @driver.find_elements(:css, 'input').find {|e| e.attribute('name') == 'execUrl' }.send_key ' '
-    e = @wait.until { @driver.find_element(:css, '#printzone > div.con_tbl_basic02 > table > tbody > tr > td > div.con_mrg02 > table > tbody > tr:nth-child(4) > td > div > div:nth-child(2) > table > tbody > tr:nth-child(2) > td > div.con_mrg04 > table > tbody > tr > td > table > tbody > tr:nth-child(1) > td > form > div > input[type="image"]') }
+    e = @driver.find_elements(:css, '#printzone form input[type="image"]').find do |e| 
+      e.attribute('name') == 'execUrl' or e.attribute('name') == 'autotukeUrl'
+    end 
+    if not e 
+      order.status = Status::Denied.new
+      return
+    end
+    e.send_key ' ' 
+    e = @driver.find_elements(:css, '#printzone form input[type="image"]').find do |e| 
+      e.attribute('alt') == '注文する'
+    end
+    if not e 
+      order.status = Status::Denied.new
+      return 
+    end
     e.send_key ' '
-    es = @wait.until {@driver.find_elements(:css, '#printzone > form > div > table > tbody > tr > td > div:nth-child(2)')}
+    es = @driver.find_elements(:css, '#printzone > form > div > table > tbody > tr > td > div:nth-child(2)')
     if es.length > 0 
       order.id = es[0].text.scan(/([\d]*)番/)[0][0]
       order.status = Status::Orderd.new
@@ -148,13 +180,62 @@ class SmbcStock
     @driver.navigate.to e.attribute('href')
     page = Nokogiri::HTML.parse(@driver.page_source)
     result = []
-    trs = page.css('#printzone > div:nth-child(3) > table > tbody > tr > td > table:nth-child(7) > tbody > tr')
+    trs = page.css('#printzone > div.con_tbl_basic02 > table > tbody > tr > td > table > tbody > tr:nth-child(1) > td > div > form > div:nth-child(3) > table:nth-child(2) > tbody > tr')
     return result if not trs.length > 1
+    hash = {}
     trs[1..-1].each do |tr|
       tds = tr.css('td')
       txts = tds.map {|td| td.text.gsub(/\\u([\da-fA-F]{4})/) { $1.hex.chr('utf-8') }}
-      hash = {}
+      index = 0
+      scans = txts[index].scan(/(\d+)\//)
+      if scans[0] and scans[0][0]
+        hash[:code] = scans[0][0]
+        index += 1
+      end
+      if txts[index] =~ /買/
+        hash[:trade_kbn] = :buy
+        index += 1
+      elsif txts[index] =~ /売/
+        hash[:trade_kbn] = :sell
+        index += 1
+      end
+      if txts[index] =~ /特定/
+        hash[:kouza_kbn] = :tokutei
+        index += 1
+      end
+      hash[:volume] = txts[index].gsub(',','').scan(/\d+/)[0].to_i
+      index += 1
+      scans = tds[index].to_s.gsub(',','').scan(/(\d+)<br>(\d+)/)
+      hash[:price] = scans[0][0].to_f
+      hash[:order_price] = scans[0][1].to_f
+      index += 1
+      scans = txts[index].gsub(',','').scan(/[\d-]+/)
+      hash[:profit] = scans[0].to_i
+      index += 1
+      hash[:asset] = txts[index].gsub(',','').scan(/\d+/)[0].to_i
+      index += 1
+      hash[:date]  = txts[index].gsub('/','').scan(/\d+/)[0]
+      index += 1
+      if txts[index] =~ /制度/
+        hash[:kigen] = :seido
+        index += 1
+      elsif txts[index+1] =~ /制度/
+        hash[:kigen] = :seido
+        index += 2
+      elsif txts[index] =~ /一般/
+        hash[:kigen] = :ippan
+        index += 1
+      elsif txts[index+1] =~ /一般/
+        hash[:kigen] = :ippan
+        index += 2
+      end
+      if txts[index] =~ /返済/
+        hash[:url] = tds[index].css('a').attribute('href').value
+      end
+      result << Hand.new(hash)
     end
+    @driver.navigate.to @torihiki_url
+    result
   end
 
   def orders
@@ -194,8 +275,3 @@ class SmbcStock
   class InvalidOrderError < StandardError; end
   class InvalidOrderEditError < StandardError; end
 end
-
-agent = SmbcStock.new
-agent.log_in(ARGV[0].strip, ARGV[1].strip, ARGV[2].strip)
-agent.recept Order::Sell.new(code: 1579, volume: 10, force: true)
-agent.recept Order::Buy.new(code: 1579, volume: 10, force: true)

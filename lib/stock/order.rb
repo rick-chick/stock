@@ -3,19 +3,9 @@ class Order
   attr_accessor :id, :code, :force, :date, :price, :volume, :contracted_price, :contracted_volume,:status, :edit_url, :cancel_url, :edit_price, :edit_volume
 
   def self.create(hash, is_buy, is_repay)
-    if is_buy
-      if is_repay
-        return Order::RepayBuy.new(hash)
-      else
-        return Order::Buy.new(hash)
-      end
-    else
-      if is_repay
-        return Order::RepaySell.new(hash)
-      else
-        return Order::Sell.new(hash)
-      end
-    end
+    return Order::Repay.new(hash) if is_repay
+    return Order::Buy.new(hash) if is_buy
+    return Order::Sell.new(hash)
   end
 
   def initialize(hash = {})
@@ -50,7 +40,7 @@ class Order
   end
 
   def new?
-    not @edit_price and not @edit_volume
+    (not @edit_price and not @edit_volume) or @edit_url.nil?
   end
 
   def price=(price)
@@ -80,7 +70,6 @@ class Order
 
   class Buy < Order; end
   class Sell < Order; end
-  class RepayBuy < Order; end
-  class RepaySell < Order; end
+  class Repay < Order; end
 end
 
