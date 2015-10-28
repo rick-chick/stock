@@ -5,7 +5,7 @@ require 'open-uri'
 class WebDriver
   def self.instance
     driver = Selenium::WebDriver.for :chrome
-    driver.manage.window.resize_to 200, 100
+    driver.manage.window.resize_to 200, 200
     driver
   end
 end
@@ -17,8 +17,13 @@ class MatsuiStock
   def log_in(user_name, password)
     @driver = WebDriver.instance
     @driver.navigate.to 'https://www.deal.matsui.co.jp/ITS/login/MemberLogin.jsp'
-    @driver.find_element(:name , 'clientCD').send_key(user_name)
-    @driver.find_element(:name , 'passwd').send_key(password)
+    e = @driver.find_element(:name , 'clientCD')
+    e.location_once_scrolled_into_view
+    @driver.action.send_keys :tab while not e.displayed?
+    e.send_key(user_name)
+    e = @driver.find_element(:name , 'passwd')
+    @driver.action.send_keys :tab while not e.displayed?
+    e.send_key(password)
     @driver.find_element(:id, 'btn_opn_login').submit
     @driver.switch_to.frame(0)
     sleep 1
@@ -68,6 +73,79 @@ class MatsuiStock
       status[:unit] = values[8].to_i
       return status 
     end
+  end
+
+  def open_board
+    e = @driver.find_element(:css, 'body > table > tbody > tr:nth-child(1) > td > table > tbody > tr:nth-child(22) > td:nth-child(2) > a')
+    @driver.navigate.to e.attribute('href')
+    e = @driver.find_element(:css, '#Control > input[type="button"]:nth-child(1)')
+    e.send_key ' ' 
+  end
+
+  def set_board(codes)
+    @codes = codes
+    wait_board_load
+    es = @driver.find_elements(:css, '#design-fourRatesList > div.wrap-portfolio div.group-stock')
+    sleep 1 while not es[0].displayed?
+    codes.each_with_index do |code, index|
+      input = es[index].find_element(:css, 'input')
+      input.send_key ''
+      input.send_key code
+      input.send_key :return
+    end
+  end
+
+  def wait_board_load
+    sleep 1 while @driver.find_elements(:css, '#design-fourRatesList > div.wrap-portfolio div.group-stock').length == 1
+  end
+
+  def watch_board(&block)
+    raise 'first you must open_board and set_board' if not @codes
+    start = Time.now
+    begin
+      if Time.now - start > 900
+        @driver.navigate.refresh
+        start = Time.now
+      end
+      wait_board_load
+    end while block.call(read_board)
+  end
+
+  def read_board
+    result = []
+    page = Nokogiri::HTML @driver.page_source
+    lines = page.css('#design-fourRatesList > div.wrap-portfolio div.group-stock')
+    @codes.each_with_index do |code, index|
+      hash = {}
+      line = lines[index]
+      hash[:code] = code
+      divs = line.css('td.td02 div')
+      hash[:price] = divs[0].text.scan(/[.\d]+/)[0].to_f
+      hash[:time] = divs[1].text.scan(/[\d:]+/)[0]
+      divs = line.css('td.td03 div')
+      hash[:diff] = divs[0].text.scan(/[-.\d]+/)[0].to_f
+      hash[:rate] = divs[1].text.scan(/[-.\d]+/)[0].to_f
+      divs = line.css('td.td04 div')
+      hash[:open] = divs[0].text.scan(/[.\d]+/)[0].to_f
+      hash[:open_time] = divs[1].text.scan(/[:\d]+/)[0]
+      divs = line.css('td.td05 div')
+      hash[:high] = divs[0].text.scan(/[.\d]+/)[0].to_f
+      hash[:high_time] = divs[1].text.scan(/[:\d]+/)[0]
+      divs = line.css('td.td06 div')
+      hash[:low] = divs[0].text.scan(/[.\d]+/)[0].to_f
+      hash[:low_time] = divs[1].text.scan(/[:\d]+/)[0]
+      divs = line.css('td.td07 div')
+      hash[:sell] = divs[0].text.scan(/[.\d]+/)[0].to_f
+      hash[:sell_volume] = divs[1].text.scan(/[.\d]+/)[0].to_f
+      divs = line.css('td.td08 div')
+      hash[:buy] = divs[0].text.scan(/[.\d]+/)[0].to_f
+      hash[:buy_volume] = divs[1].text.scan(/[.\d]+/)[0].to_f
+      divs = line.css('td.td09 div')
+      hash[:volume] = divs[0].text.scan(/[.\d]+/)[0].to_f
+      hash[:tick] = divs[1].text.scan(/[.\d]+/)[0].to_f
+      result << Board.new(hash)
+    end
+    result
   end
 
   def open_order(code)
