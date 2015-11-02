@@ -18,3 +18,8 @@ hands.each do |hand|
   order = agent.recept order
   p order
 end
+
+orders = agent.orders
+orders.find_all {|o| o.orderd?}.each do |order|
+  agent.cancel order
+end

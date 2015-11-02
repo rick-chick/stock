@@ -26,10 +26,10 @@ if order.orderd?
   order.price = 12600
   agent.recept order
   p order.status
-  order = agent.orders.find {|o| o.orderd? }
-  order.force = true
-  agent.recept order
-  p order.status
+  #order = agent.orders.find {|o| o.orderd? }
+  #order.force = true
+  #agent.recept order
+  #p order.status
   order = agent.orders.find {|o| o.orderd? }
   order = agent.cancel order
   p order.status
@@ -47,13 +47,13 @@ if order.orderd?
   agent.recept order
   p order.status
   order = agent.orders.find {|o| o.orderd? }
-  order.price = 12600
+  order.price = 17200
   agent.recept order
   p order.status
-  order = agent.orders.find {|o| o.orderd? }
-  order.force = true
-  agent.recept order
-  p order.status
+  #order = agent.orders.find {|o| o.orderd? }
+  #order.force = true
+  #agent.recept order
+  #p order.status
   order = agent.orders.find {|o| o.orderd? }
   order = agent.cancel order
   p order.status

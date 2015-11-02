@@ -3,13 +3,13 @@ require File.expand_path(File.dirname(__FILE__), '../lib/stock/board')
 require File.expand_path(File.dirname(__FILE__), '../lib/stock/matsui')
 require 'nokogiri'
 
-agent = MatsuiStock.new
+agent = MatsuiStock::StockBoard.new
 agent.log_in(ARGV[0], ARGV[1])
 agent.pin_code = ARGV[2]
-agent.open_board
-agent.set_board([1568, 1579])
+agent.open
+agent.set([1568, 1579])
 prev = nil
-agent.watch_board do |boards|
+agent.watch do |boards|
   board1 = boards.find {|a| a.code == 1568}
   board2 = boards.find {|a| a.code == 1579}
   buy   = board1.buy - board2.sell + 20
