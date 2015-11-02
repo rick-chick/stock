@@ -221,5 +221,58 @@ class Minute < Stock
     end
     stocks
   end
+end
 
+class Pair < Stock
+  
+  attr_accessor :time, :code1, :code2
+
+  def self.blank_instances(code, date)
+    CodeTime.blank_instances(code, date).map do |code_minute|
+      Minute.new(code_minute, nil)
+    end
+  end
+
+  def self.read(from ,to, column, hash = {})
+    if not hash.kind_of? Hash 
+      raise "Stock.read(from, to, column, options) options must be hash"
+    end
+    from = from.strftime('%Y%m%d%H%M%S') if from.kind_of? Time
+    to = to.strftime('%Y%m%d%H%M%S') if to.kind_of? Time
+    params = [from, to]
+    conditions = ""
+    if hash.key?(:code1) then
+      params << hash[:code1]
+      conditions = "and  pair_times.code1 = $3"
+    end
+    if hash.key?(:code2) then
+      params << hash[:code2]
+      conditions = "and  pair_times.code2 = $4"
+    end
+
+    sql = <<-SQL
+      select  stocks.id
+            , stocks.#{column}
+            , pair_times.code1
+            , pair_times.code2
+            , pair_times.time
+        from  stocks
+            , pair_times
+       where  pair_times.time  >=  to_timestamp($1, 'yyyymmddhh24miss')
+         and  pair_times.time  <=  to_timestamp($2, 'yyyymmddhh24miss')
+         and  pair_times.id = stocks.id
+              #{conditions}
+      order by code1, code2,time
+    SQL
+
+    stocks = Stocks.new
+    Db.conn.exec(sql, params).each do |row|
+      s = Pair.new
+      s.key   = PairTime.new(row["code1"], row["code2"], row["time"])
+      s.id    = row["id"]
+      s.value = row[column].to_f
+      stocks << s
+    end
+    stocks
+  end
 end
