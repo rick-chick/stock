@@ -194,14 +194,12 @@ class MatsuiStock
     def watch(&block)
       raise 'first you must open_board and set_board' if not @codes
       start = Time.now
-      wait_load
       begin
         if Time.now - start > 900
           @driver.navigate.refresh
           start = Time.now
-          wait_load
-          set @codes
         end
+        wait_load
       end while block.call(read)
     end
 
