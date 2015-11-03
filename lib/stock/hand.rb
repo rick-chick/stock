@@ -22,9 +22,11 @@ class Hand
     hash[:price] = @price
     hash[:volume] = @volume
     hash[:edit_url] = @url
-    order = Order::Repay.new(code: @code,
-                             price: @price,
-                             volume: @volume,
-                             edit_url: @url)
+    order = Order::Repay.new(
+      code: @code,
+      price: @price,
+      volume: @volume,
+      edit_url: @url
+    )
   end
 end
