@@ -1,6 +1,8 @@
 #coding: utf-8
 class Order
-  attr_accessor :id, :code, :force, :date, :price, :volume, :contracted_price, :contracted_volume,:status, :edit_url, :cancel_url, :edit_price, :edit_volume, :no
+  attr_accessor :id, :code, :force, :date, :price, :volume, :contracted_price, 
+    :contracted_volume,:status, :edit_url, :cancel_url, :edit_price, :edit_volume, 
+    :no
 
   def self.create(hash, is_buy, is_repay)
     if is_repay
