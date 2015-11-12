@@ -80,7 +80,7 @@ class SmbcStock
     e.send_key ' '
     es = @driver.find_elements(:css, '#printzone > div.con_tbl_basic02 > div span span')
     if es.length > 0 
-      order.id = es[0].text.scan(/([\d]*)番/)[0][0]
+      order.no = es[0].text.scan(/([\d]*)番/)[0][0]
       order.status = Status::Cancel.new
     else
       order.status = Status::Denied.new
@@ -125,9 +125,9 @@ class SmbcStock
     es = @driver.find_elements(:css, '#printzone span')
     raise CantFindElementError if es.length == 0
     es.each do |e|
-      id = e.text.scan(/受付No.は([\d]*)番/)
-      next if id.length == 0
-      order.id = id[-1][0]
+      no = e.text.scan(/受付No.は([\d]*)番/)
+      next if no.length == 0
+      order.no = no[-1][0]
       order.status = Status::Edited.new
     end
     raise CantFindElementError if not order.status.kind_of? Status::Edited
@@ -167,7 +167,7 @@ class SmbcStock
 
     es = @driver.find_elements(:css, '#printzone > form > div > table > tbody > tr > td > div:nth-child(2)')
     raise CantFindElementError if es.length == 0
-    order.id = es[0].text.scan(/([\d]*)番/)[0][0]
+    order.no = es[0].text.scan(/([\d]*)番/)[0][0]
     order.status = Status::Orderd.new
   end
 
@@ -257,7 +257,7 @@ class SmbcStock
       hash[:contracted_volume] = txts[4].split("\t")[1].scan(/\d/).join('')
       hash[:contracted_price] = txts[4].split("\t")[2].scan(/\d/).join('')
       hash[:status] = Status.create(txts[6])
-      hash[:id] = txts[7].scan(/\d/).join('')
+      hash[:no] = txts[7].scan(/\d/).join('')
       as = tds[8].css('a')
       if as.length > 0 
         hash[:cancel_url] = as[0].attribute('href').value 
