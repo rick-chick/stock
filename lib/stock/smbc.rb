@@ -11,6 +11,7 @@ end
 class SmbcStock
 
   TOP_URL = 'https://trade.smbcnikko.co.jp'
+  DEFAULT_RELOAD_INTERVAL = 60 * 15
 
   def initialize
     @wait = Selenium::WebDriver::Wait.new(:timeout => 20)
@@ -32,6 +33,7 @@ class SmbcStock
     e = @wait.until { @driver.find_element(:css, 'body > div:nth-child(5) > table:nth-child(1) > tbody > tr > td:nth-child(3) > a') }
     @driver.navigate.to e.attribute('href')
     @torihiki_url = @driver.current_url
+    @last_loaded = Time.now
   end
 
   def recept(order)
@@ -62,6 +64,7 @@ class SmbcStock
     raise(StandardError,e.message+'!!',e.backtrace)
   ensure
     @driver.navigate.to @torihiki_url
+    @last_loaded = Time.now
   end
 
   def cancel(order)
@@ -83,6 +86,7 @@ class SmbcStock
       order.status = Status::Denied.new
     end
     @driver.navigate.to @torihiki_url
+    @last_loaded = Time.now
     order
   end
 
@@ -229,6 +233,7 @@ class SmbcStock
     result
   ensure
     @driver.navigate.to @torihiki_url
+    @last_loaded = Time.now
   end
 
   def orders
@@ -261,6 +266,13 @@ class SmbcStock
     end
     @driver.navigate.to @torihiki_url
     result
+  def unloaded_over_interval?
+    @last_loaded - Time.now > DEFAULT_RELOAD_INTERVAL
+  end
+
+  def reload
+    @driver.navigate.to @torihiki_url
+    @last_loaded = Time.now
   end
 
   class UndefinedTradeTypeError < StandardError; end
