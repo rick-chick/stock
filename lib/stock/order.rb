@@ -1,6 +1,6 @@
 #coding: utf-8
 class Order
-  attr_accessor :id, :code, :force, :date, :price, :volume, :contracted_price, :contracted_volume,:status, :edit_url, :cancel_url, :edit_price, :edit_volume
+  attr_accessor :id, :code, :force, :date, :price, :volume, :contracted_price, :contracted_volume,:status, :edit_url, :cancel_url, :edit_price, :edit_volume, :no
 
   def self.create(hash, is_buy, is_repay)
     if is_repay
@@ -23,12 +23,14 @@ class Order
             edit_volume: false, 
             force: false, 
             id: nil,
+            no: nil,
             date: Time.now,
             status: Status::Orderd.new, 
             edit_url: nil,
             cancel_url: nil,
     }.merge(hash)
     @id = hash[:id]
+    @no = hash[:no]
     @code = hash[:code]
     @date = hash[:date]
     @price = hash[:price]
