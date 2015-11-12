@@ -3,9 +3,19 @@ class Order
   attr_accessor :id, :code, :force, :date, :price, :volume, :contracted_price, :contracted_volume,:status, :edit_url, :cancel_url, :edit_price, :edit_volume
 
   def self.create(hash, is_buy, is_repay)
-    return Order::Repay.new(hash) if is_repay
-    return Order::Buy.new(hash) if is_buy
-    return Order::Sell.new(hash)
+    if is_repay
+      if is_buy
+        Order::Buy::Repay.new(hash) 
+      else
+        Order::Sell::Repay.new(hash) 
+      end
+    else
+      if is_buy
+        Order::Buy.new(hash) 
+      else
+        Order::Sell.new(hash)
+      end
+    end
   end
 
   def initialize(hash = {})
@@ -68,8 +78,25 @@ class Order
     @status = status
   end
 
-  class Buy < Order; end
-  class Sell < Order; end
-  class Repay < Order; end
+  def buy?
+    self.kind_of? Order::Buy
+  end
+
+  def sell?
+    self.kind_of? Order::Sell
+  end
+
+  def repay?
+    self.kind_of? Order::Sell::Repay or
+      self.kind_of? Order::Buy::Repay
+  end
+
+  class Buy < Order
+    class Repay < Buy; end
+  end
+
+  class Sell < Order
+    class Repay < Sell; end
+  end
 end
 
