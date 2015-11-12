@@ -231,6 +231,9 @@ class SmbcStock
       result << Hand.new(hash)
     end
     result
+  rescue => e
+    order.status = Status::Denied.new
+    raise(StandardError,e.message+'!!',e.backtrace)
   ensure
     @driver.navigate.to @torihiki_url
     @last_loaded = Time.now
@@ -264,8 +267,15 @@ class SmbcStock
       order = Order.create(hash, txts[1] =~ /買/, txts[2] =~ /返済/)
       result << order
     end
-    @driver.navigate.to @torihiki_url
     result
+  rescue => e
+    order.status = Status::Denied.new
+    raise(StandardError,e.message+'!!',e.backtrace)
+  ensure
+    @driver.navigate.to @torihiki_url
+    @last_loaded = Time.now
+  end
+
   def unloaded_over_interval?
     @last_loaded - Time.now > DEFAULT_RELOAD_INTERVAL
   end
