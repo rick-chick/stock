@@ -275,4 +275,34 @@ class Pair < Stock
     end
     stocks
   end
+
+  def self.select_equilibrium_price(code1, code2, to, count)
+    params = [code1, code2, to, count]
+    sql = <<-SQL
+      select  stocks.id
+            , stocks.close
+            , pair_times.code1
+            , pair_times.code2
+            , pair_times.time
+        from  stocks
+            , pair_times
+       where  pair_times.time  <=  $3
+         and  pair_times.id = stocks.id
+         and  pair_times.code1 = $1
+         and  pair_times.code2 = $2
+         and  stocks.high = stocks.low
+    order by  code1, code2,time desc
+       limit  $4 offset 0
+    SQL
+
+    stocks = Stocks.new
+    Db.conn.exec(sql, params).each do |row|
+      s = Pair.new
+      s.key   = PairTime.new(row["code1"], row["code2"], Time.parse(row["time"]))
+      s.id    = row["id"]
+      s.value = row["close"].to_f
+      stocks.unshift s
+    end
+    stocks
+  end
 end
