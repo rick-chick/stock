@@ -12,8 +12,6 @@ class CreateOrderMigration < ActiveRecord::Migration
         contracted_price float4, 
         contracted_volume int8,
         status int4, 
-        edit_url varchar(200), 
-        cancel_url varchar(200), 
         no int4
       )
     SQL

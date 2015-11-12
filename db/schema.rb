@@ -39,8 +39,6 @@ ActiveRecord::Schema.define(version: 20151112073455) do
     t.float   "contracted_price"
     t.integer "contracted_volume", limit: 8
     t.integer "status"
-    t.string  "edit_url",          limit: 200
-    t.string  "cancel_url",        limit: 200
     t.integer "no"
   end
 
