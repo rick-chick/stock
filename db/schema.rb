@@ -9,53 +9,67 @@
 # from scratch. The latter is a flawed and unsustainable approach (the more migrations
 # you'll amass, the slower it'll run and the greater likelihood for issues).
 #
-# It's strongly recommended to check this file into your version control system.
+# It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20151102002151) do
+ActiveRecord::Schema.define(version: 20151112073455) do
 
-  create_table "code_dates", :id => false, :force => true do |t|
-    t.integer  "id",      :limit => 8, :null => false
-    t.string   "code",    :limit => 8
-    t.string   "date",    :limit => 8
+  create_table "code_dates", id: :bigserial, force: :cascade do |t|
+    t.string   "code",    limit: 8
+    t.string   "date",    limit: 8
     t.datetime "updated"
   end
 
-  add_index "code_dates", ["code", "date"], :name => "code_date_index", :unique => true
+  add_index "code_dates", ["code", "date"], name: "code_date_index", unique: true, using: :btree
 
-  create_table "code_times", :id => false, :force => true do |t|
-    t.integer  "id",      :limit => 8, :null => false
-    t.string   "code",    :limit => 8
-    t.string   "date",    :limit => 8
-    t.string   "time",    :limit => 4
+  create_table "code_times", id: :bigserial, force: :cascade do |t|
+    t.string   "code",    limit: 8
+    t.string   "date",    limit: 8
+    t.string   "time",    limit: 4
     t.datetime "updated"
   end
 
-  add_index "code_times", ["code", "date", "time"], :name => "code_time_index", :unique => true
+  add_index "code_times", ["code", "date", "time"], name: "code_time_index", unique: true, using: :btree
 
-  create_table "pair_times", :force => true do |t|
-    t.string   "code1",   :limit => 8
-    t.string   "code2",   :limit => 8
+  create_table "orders", id: :bigserial, force: :cascade do |t|
+    t.string  "code",              limit: 8
+    t.boolean "force"
+    t.date    "date"
+    t.float   "price"
+    t.integer "volume",            limit: 8
+    t.float   "contracted_price"
+    t.integer "contracted_volume", limit: 8
+    t.integer "status"
+    t.string  "edit_url",          limit: 200
+    t.string  "cancel_url",        limit: 200
+    t.integer "no"
+  end
+
+  add_index "orders", ["code", "date", "no"], name: "order_table_index", unique: true, using: :btree
+
+  create_table "pair_times", id: :bigserial, force: :cascade do |t|
+    t.string   "code1",   limit: 8
+    t.string   "code2",   limit: 8
     t.datetime "time"
     t.datetime "updated"
   end
 
-  add_index "pair_times", ["code1", "code2", "time"], :name => "pair_time_index", :unique => true
+  add_index "pair_times", ["code1", "code2", "time"], name: "pair_time_index", unique: true, using: :btree
 
-  create_table "splits", :id => false, :force => true do |t|
-    t.integer  "id",      :limit => 8, :null => false
+  create_table "splits", id: :bigserial, force: :cascade do |t|
     t.float    "before"
     t.float    "after"
     t.datetime "updated"
   end
 
-  create_table "stocks", :force => true do |t|
+  create_table "stocks", id: :bigserial, force: :cascade do |t|
     t.float    "open"
     t.float    "high"
     t.float    "low"
     t.float    "close"
     t.float    "adjusted"
-    t.integer  "volume",   :limit => 8
+    t.integer  "volume",   limit: 8
     t.datetime "updated"
   end
 
+  add_foreign_key "splits", "code_dates", column: "id", name: "splits_id_fkey"
 end
