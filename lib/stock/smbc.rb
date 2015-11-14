@@ -277,7 +277,7 @@ class SmbcStock
   end
 
   def unloaded_over_interval?
-    @last_loaded - Time.now > DEFAULT_RELOAD_INTERVAL
+    Time.now - @last_loaded > DEFAULT_RELOAD_INTERVAL
   end
 
   def reload
