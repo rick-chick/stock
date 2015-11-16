@@ -1,7 +1,12 @@
 #encoding: utf-8
 class Player
 
-  attr_accessor :boards, :hands, :orders, :codes, :tick, :volume
+  attr_accessor :boards, :hands, :orders, :tick, :volume
+
+  def codes=(codes)
+    @codes = []
+    codes.each {|code| @codes << code.to_s}
+  end
 
   def decide(&agent)
     orders = []
@@ -133,28 +138,28 @@ class Player
     if @hands.length == 0
       return HoldStatus.current = HoldStatus::NONE
     end
-    if @hands.find {|h| h.trade_kbn == :buy and h.code.to_s == @codes[0].to_s} and
-        @hands.find {|h| h.trade_kbn == :sell and h.code.to_s == @codes[1].to_s}
+    if @hands.find {|h| h.trade_kbn == :buy and h.code == @codes[0]} and
+        @hands.find {|h| h.trade_kbn == :sell and h.code == @codes[1]}
       sum1 = 0
-      @hands.find_all {|h| h.trade_kbn = :buy and h.code.to_s == @codes[0].to_s}.each do |h|
+      @hands.find_all {|h| h.trade_kbn = :buy and h.code == @codes[0]}.each do |h|
         sum1 += h.volume
       end
       sum2 = 0
-      @hands.find_all {|h| h.trade_kbn = :sell and h.code.to_s == @codes[1].to_s}.each do |h|
+      @hands.find_all {|h| h.trade_kbn = :sell and h.code == @codes[1]}.each do |h|
         sum2 += h.volume
       end
       if sum1 == sum2
         return HoldStatus.current = HoldStatus::BUY
       end
     end
-    if @hands.find {|h| h.trade_kbn == :sell and h.code.to_s == @codes[0].to_s} and
-        @hands.find {|h| h.trade_kbn == :buy and h.code.to_s == @codes[1].to_s}
+    if @hands.find {|h| h.trade_kbn == :sell and h.code == @codes[0]} and
+        @hands.find {|h| h.trade_kbn == :buy and h.code == @codes[1]}
       sum1 = 0
-      @hands.find_all {|h| h.trade_kbn = :sell and h.code.to_s == @codes[0].to_s}.each do |h|
+      @hands.find_all {|h| h.trade_kbn = :sell and h.code == @codes[0]}.each do |h|
         sum1 += h.volume
       end
       sum2 = 0
-      @hands.find_all {|h| h.trade_kbn = :buy and h.code.to_s == @codes[1].to_s}.each do |h|
+      @hands.find_all {|h| h.trade_kbn = :buy and h.code == @codes[1]}.each do |h|
         sum2 += h.volume
       end
       if sum1 == sum2
