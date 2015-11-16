@@ -7,23 +7,23 @@ class Board
   def initialize(hash = {})
     hash = {time: Time.now
     }.merge(hash)
-    @code = hash[:code]
-    @price = hash[:price]
+    @code = hash[:code].to_s
+    @price = hash[:price].to_f
     @time = hash[:time]
-    @diff = hash[:diff]
-    @rate = hash[:rate]
-    @open = hash[:open]
+    @diff = hash[:diff].to_f
+    @rate = hash[:rate].to_f
+    @open = hash[:open].to_f
     @open_time = hash[:open_time]
-    @high = hash[:high]
+    @high = hash[:high].to_f
     @high_time = hash[:high_time]
-    @low = hash[:low]
+    @low = hash[:low].to_f
     @low_time = hash[:low_time]
-    @sell = hash[:sell]
-    @sell_volume = hash[:sell_volume]
-    @buy = hash[:buy]
-    @buy_volume = hash[:buy_volume]
-    @volume = hash[:volume]
-    @tick = hash[:tick]
+    @sell = hash[:sell].to_f
+    @sell_volume = hash[:sell_volume].to_f
+    @buy = hash[:buy].to_f
+    @buy_volume = hash[:buy_volume].to_f
+    @volume = hash[:volume].to_f
+    @tick = hash[:tick].to_f
     @closed = hash[:closed]
   end
 
