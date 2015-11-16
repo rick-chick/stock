@@ -3,14 +3,14 @@ class Hand
   attr_accessor :code, :trade_kbn, :kouza_kbn, :price, :order_price, :volume, :profit, :asset, :date, :kigen, :url
 
   def initialize(hash = {})
-    @code = hash[:code]
+    @code = hash[:code].to_s
     @trade_kbn = hash[:trade_kbn]
     @kouza_kbn = hash[:kouza_kbn]
-    @price = hash[:price]
-    @order_price = hash[:order_price]
-    @volume = hash[:volume]
-    @profit = hash[:profit]
-    @asset = hash[:asset]
+    @price = hash[:price].to_f
+    @order_price = hash[:order_price].to_f
+    @volume = hash[:volume].to_i
+    @profit = hash[:profit].to_f
+    @asset = hash[:asset].to_f
     @date = hash[:date]
     @kigen = hash[:kigen]
     @url = hash[:url]

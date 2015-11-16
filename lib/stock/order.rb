@@ -36,9 +36,9 @@ class Order
     @code = hash[:code].to_s
     @date = hash[:date]
     @price = hash[:price].to_f
-    @volume = hash[:volume].to_f
+    @volume = hash[:volume].to_i
     @contracted_price = hash[:contracted_price].to_f
-    @contracted_volume = hash[:contracted_volume].to_f
+    @contracted_volume = hash[:contracted_volume].to_i
     @force = hash[:force]
     @edit_url = hash[:edit_url]
     @cancel_url = hash[:cancel_url]
@@ -60,13 +60,13 @@ class Order
   def price=(price)
     return if @price == price
     @edit_price= true
-    @price = price
+    @price = price.to_f
   end
 
   def volume=(volume)
     return if @volume == volume
     @edit_volume = true
-    @volume = volume
+    @volume = volume.to_i
   end
 
   def force=(force)
@@ -93,6 +93,10 @@ class Order
   def repay?
     self.kind_of? Order::Sell::Repay or
       self.kind_of? Order::Buy::Repay
+  end
+
+  def insert
+    p self
   end
 
   class Buy < Order

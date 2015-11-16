@@ -19,10 +19,10 @@ class Board
     @low = hash[:low].to_f
     @low_time = hash[:low_time]
     @sell = hash[:sell].to_f
-    @sell_volume = hash[:sell_volume].to_f
+    @sell_volume = hash[:sell_volume].to_i
     @buy = hash[:buy].to_f
-    @buy_volume = hash[:buy_volume].to_f
-    @volume = hash[:volume].to_f
+    @buy_volume = hash[:buy_volume].to_i
+    @volume = hash[:volume].to_i
     @tick = hash[:tick].to_f
     @closed = hash[:closed]
   end
