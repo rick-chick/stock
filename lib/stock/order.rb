@@ -32,13 +32,13 @@ class Order
             cancel_url: nil,
     }.merge(hash)
     @id = hash[:id]
-    @no = hash[:no]
-    @code = hash[:code]
+    @no = hash[:no].to_s
+    @code = hash[:code].to_s
     @date = hash[:date]
-    @price = hash[:price]
-    @volume = hash[:volume]
-    @contracted_price = hash[:contracted_price]
-    @contracted_volume = hash[:contracted_volume]
+    @price = hash[:price].to_f
+    @volume = hash[:volume].to_f
+    @contracted_price = hash[:contracted_price].to_f
+    @contracted_volume = hash[:contracted_volume].to_f
     @force = hash[:force]
     @edit_url = hash[:edit_url]
     @cancel_url = hash[:cancel_url]
