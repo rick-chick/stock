@@ -39,6 +39,9 @@ class SmbcStock
   def recept(order)
     if order.new? 
       case order
+      when Order::Sell::Repay, Order::Buy::Repay
+        @driver.navigate.to(TOP_URL + order.edit_url)
+        edit_new_order_page(order)
       when Order::Buy
         url = @driver.find_element(:css, '#printzone > div.con_tbl_basic01 > table > tbody > tr > td > div:nth-child(5) > table > tbody > tr:nth-child(2) > td:nth-child(5) > table > tbody > tr:nth-child(2) > td > div > div:nth-child(1) > span > a').attribute('href')
         @driver.navigate.to url
@@ -46,9 +49,6 @@ class SmbcStock
       when Order::Sell
         url = @driver.find_element(:css, '#printzone > div.con_tbl_basic01 > table > tbody > tr > td > div:nth-child(5) > table > tbody > tr:nth-child(2) > td:nth-child(5) > table > tbody > tr:nth-child(2) > td > div > div:nth-child(2) > span > a').attribute('href')
         @driver.navigate.to url
-        edit_new_order_page(order)
-      when Order::Repay
-        @driver.navigate.to(TOP_URL + order.edit_url)
         edit_new_order_page(order)
       else
         raise UndefinedTradeTypeError
@@ -159,7 +159,7 @@ class SmbcStock
     end 
     raise CantFindElementError if not e
     e.send_key ' ' 
-    e = @driver.find_elements(:css, '#printzone form input[type="image"]').find do |e| 
+    e = @driver.find_elements(:css, '#printzone input[type="image"]').find do |e| 
       e.attribute('alt') == '注文する'
     end
     raise CantFindElementError if not e
@@ -232,7 +232,6 @@ class SmbcStock
     end
     result
   rescue => e
-    order.status = Status::Denied.new
     raise(StandardError,e.message+'!!',e.backtrace)
   ensure
     @driver.navigate.to @torihiki_url
