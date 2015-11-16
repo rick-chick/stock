@@ -172,26 +172,26 @@ class Player
   def assemble_status
     uncontracteds = @orders.find_all {|o| o.orderd? }
     if uncontracteds.length == 0
-      return HoldStatus.current = AssembleStatus::COMPLETE
+      return AssembleStatus.current = AssembleStatus::COMPLETE
     end
     board = @boards.group_by {|b| b.code}
     uncontracteds.each do |o|
       raise OrderUndefinedCodeError if not board.key? o.code
       if o.buy?
         if board[o.code][0].price > o.price
-          return HoldStatus.current = AssembleStatus::BE_CONTRACTED
+          return AssembleStatus.current = AssembleStatus::BE_CONTRACTED
         end
       elsif o.sell?
         if board[o.code][0].price < o.price
-          return HoldStatus.current = AssembleStatus::BE_CONTRACTED
+          return AssembleStatus.current = AssembleStatus::BE_CONTRACTED
         end
       end
     end
-    HoldStatus.current = AssembleStatus::PROCESSING
+    AssembleStatus.current = AssembleStatus::PROCESSING
   end
 
   def have_uncontracted_order?
-    AssembleStatus.current == AssembleStatus::COMPLETE
+    not AssembleStatus.current == AssembleStatus::COMPLETE
   end
 
   class OrderUndefinedCodeError < StandardError; end
@@ -201,9 +201,11 @@ end
 
 class Status
 
+  attr_accessor :type
+
   def self.current=(status)
     if @current != status
-      #p "#{@current} => #{status}"
+        p "#{@current}:#{@current ? @current.type : ""} => #{status}:#{status.type}"
       @current = status
     end
   end
@@ -219,10 +221,10 @@ class OrderStatus < Status
     @type = type
   end
 
-  BUY = OrderStatus.new(0)
-  SELL = OrderStatus.new(1)
-  LOSS_CUT = OrderStatus.new(2)
-  PENDING = OrderStatus.new(3)
+  BUY = OrderStatus.new("buy")
+  SELL = OrderStatus.new("sell")
+  LOSS_CUT = OrderStatus.new("loss_cut")
+  PENDING = OrderStatus.new("pending")
 end
 
 class HoldStatus < Status
@@ -231,10 +233,10 @@ class HoldStatus < Status
     @type = type
   end
 
-  NONE = HoldStatus.new(0)
-  BUY = HoldStatus.new(1)
-  SELL = HoldStatus.new(2)
-  INVALID = HoldStatus.new(3)
+  NONE = HoldStatus.new("none")
+  BUY = HoldStatus.new("buy")
+  SELL = HoldStatus.new("sell")
+  INVALID = HoldStatus.new("invalid")
 end
 
 class AssembleStatus < Status
@@ -243,7 +245,7 @@ class AssembleStatus < Status
     @type = type
   end
 
-  PROCESSING = AssembleStatus.new(0)
-  BE_CONTRACTED = AssembleStatus.new(1)
-  COMPLETE = AssembleStatus.new(2)
+  PROCESSING = AssembleStatus.new("processing")
+  BE_CONTRACTED = AssembleStatus.new("be_contracted")
+  COMPLETE = AssembleStatus.new("complete")
 end
