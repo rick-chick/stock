@@ -140,11 +140,11 @@ class Player
     if @hands.find {|h| h.trade_kbn == :buy and h.code == @codes[0]} and
         @hands.find {|h| h.trade_kbn == :sell and h.code == @codes[1]}
       sum1 = 0
-      @hands.find_all {|h| h.trade_kbn = :buy and h.code == @codes[0]}.each do |h|
+      @hands.find_all {|h| h.trade_kbn == :buy and h.code == @codes[0]}.each do |h|
         sum1 += h.volume
       end
       sum2 = 0
-      @hands.find_all {|h| h.trade_kbn = :sell and h.code == @codes[1]}.each do |h|
+      @hands.find_all {|h| h.trade_kbn == :sell and h.code == @codes[1]}.each do |h|
         sum2 += h.volume
       end
       if sum1 == sum2
@@ -154,11 +154,11 @@ class Player
     if @hands.find {|h| h.trade_kbn == :sell and h.code == @codes[0]} and
         @hands.find {|h| h.trade_kbn == :buy and h.code == @codes[1]}
       sum1 = 0
-      @hands.find_all {|h| h.trade_kbn = :sell and h.code == @codes[0]}.each do |h|
+      @hands.find_all {|h| h.trade_kbn == :sell and h.code == @codes[0]}.each do |h|
         sum1 += h.volume
       end
       sum2 = 0
-      @hands.find_all {|h| h.trade_kbn = :buy and h.code == @codes[1]}.each do |h|
+      @hands.find_all {|h| h.trade_kbn == :buy and h.code == @codes[1]}.each do |h|
         sum2 += h.volume
       end
       if sum1 == sum2
@@ -190,7 +190,7 @@ class Player
   end
 
   def have_uncontracted_order?
-    not AssembleStatus.current == AssembleStatus::COMPLETE
+    not AssembleStatus.current == AssembleStatus::COMPLETE or HoldStatus.current == HoldStatus::INVALID
   end
 
   class OrderUndefinedCodeError < StandardError; end
