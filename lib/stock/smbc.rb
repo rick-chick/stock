@@ -210,8 +210,10 @@ class SmbcStock
       index += 1
       hash[:asset] = txts[index].gsub(',','').scan(/\d+/)[0].to_i
       index += 1
-      hash[:date]  = txts[index].gsub('/','').scan(/\d+/)[0]
-      index += 1
+      if txts[index]
+        hash[:date]  = txts[index].gsub('/','').scan(/\d+/)[0]
+        index += 1
+      end
       if txts[index] =~ /制度/
         hash[:kigen] = :seido
         index += 1
