@@ -12,7 +12,7 @@ class Player
     orders = []
     case assemble_status
     when AssembleStatus::BE_CONTRACTED
-      oreders = @orders.find_all {|o| o.orderd? }.map do |order|
+      orders = @orders.find_all {|o| o.orderd? }.map do |order|
         order.force = true
         order
       end
