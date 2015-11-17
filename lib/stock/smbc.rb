@@ -99,7 +99,10 @@ class SmbcStock
     if order.edit_price
       if not order.force
         es = @driver.find_elements(:css, '#printzone > div.con_tbl_basic02 > table > tbody > tr > td > form > div > table > tbody > tr:nth-child(4) > td > div > div.con_mrg03 > table > tbody > tr > td:nth-child(1) > div.con_mrg04 > table > tbody > tr:nth-child(9) > td input[type="text"]')
-        raise CantFindElementError if es.length == 0
+        if es.length == 0
+          es = @driver.find_elements(:css, '#itanka > table > tbody > tr:nth-child(1) > td > table > tbody > tr > td:nth-child(2) > div > table > tbody > tr > td:nth-child(1) > input[type="text"]')
+          raise CantFindElementError if es.length == 0
+        end
         es[0].send_key order.price
       else
         es = @driver.find_elements(:css, '#j')
