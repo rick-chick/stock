@@ -177,11 +177,11 @@ class Player
     uncontracteds.each do |o|
       raise OrderUndefinedCodeError if not board.key? o.code
       if o.buy?
-        if board[o.code][0].price > o.price
+        if board[o.code][0].buy > o.price
           return AssembleStatus.current = AssembleStatus::BE_CONTRACTED
         end
       elsif o.sell?
-        if board[o.code][0].price < o.price
+        if board[o.code][0].sell < o.price
           return AssembleStatus.current = AssembleStatus::BE_CONTRACTED
         end
       end
