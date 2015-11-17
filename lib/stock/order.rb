@@ -1,8 +1,7 @@
 #coding: utf-8
 class Order
   attr_accessor :id, :code, :force, :date, :price, :volume, :contracted_price, 
-    :contracted_volume,:status, :edit_url, :cancel_url, :edit_price, :edit_volume, 
-    :no
+    :contracted_volume,:status, :edit_url, :cancel_url, :no, :edited
 
   def self.create(hash, is_buy, is_repay)
     if is_repay
@@ -21,8 +20,7 @@ class Order
   end
 
   def initialize(hash = {})
-    hash = {edit_price: false, 
-            edit_volume: false, 
+    hash = {edited: false, 
             force: false, 
             id: nil,
             no: nil,
@@ -54,31 +52,26 @@ class Order
   end
 
   def new?
-    (not @edit_price and not @edit_volume) or @edit_url.nil?
+    not @edited
   end
 
   def price=(price)
     return if @price == price
-    @edit_price= true
     @price = price.to_f
   end
 
   def volume=(volume)
     return if @volume == volume
-    @edit_volume = true
     @volume = volume.to_i
   end
 
   def force=(force)
     return if @force == force
-    @edit_price = true
     @force = force
   end
 
   def status=(status)
     return if @status == status
-    @edit_price = false
-    @edit_volume = false
     @status = status
   end
 
