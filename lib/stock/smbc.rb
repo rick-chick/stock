@@ -91,24 +91,25 @@ class SmbcStock
   end
 
   def edit_order_page(order)
-    raise InvalidOrderEditError if order.edit_volume and order.edit_price
+    raise InvalidOrderEditError if not order.edited
     es = @driver.find_elements(:css, '#printzone input[type="text"]') 
     e = es.find {|e| e.attribute('name') == 'tseiSu'}
     e.send_key(order.volume) if e
 
-    if order.edit_price
-      if not order.force
-        es = @driver.find_elements(:css, '#printzone > div.con_tbl_basic02 > table > tbody > tr > td > form > div > table > tbody > tr:nth-child(4) > td > div > div.con_mrg03 > table > tbody > tr > td:nth-child(1) > div.con_mrg04 > table > tbody > tr:nth-child(9) > td input[type="text"]')
-        if es.length == 0
-          es = @driver.find_elements(:css, '#itanka > table > tbody > tr:nth-child(1) > td > table > tbody > tr > td:nth-child(2) > div > table > tbody > tr > td:nth-child(1) > input[type="text"]')
-          raise CantFindElementError if es.length == 0
-        end
-        es[0].send_key order.price
-      else
-        es = @driver.find_elements(:css, '#j')
+    if not order.force
+      es = @driver.find_elements(:css, '#printzone > div.con_tbl_basic02 > table > tbody > tr > td > form > div > table > tbody > tr:nth-child(4) > td > div > div.con_mrg03 > table > tbody > tr > td:nth-child(1) > div.con_mrg04 > table > tbody > tr:nth-child(9) > td input[type="text"]')
+      if es.length == 0
+        es = @driver.find_elements(:css, '#itanka > table > tbody > tr:nth-child(1) > td > table > tbody > tr > td:nth-child(2) > div > table > tbody > tr > td:nth-child(1) > input[type="text"]')
         raise CantFindElementError if es.length == 0
-        es[0].send_key ' '
       end
+      es[0].send_key order.price
+    else
+      es = @driver.find_elements(:css, '#j')
+      if es.length == 0 
+      es = @driver.find_elements(:css, '#nari')
+      end
+      raise CantFindElementError if es.length == 0
+      es[0].send_key ' '
     end
 
     es = @driver.find_elements(:css, '#tojit')
