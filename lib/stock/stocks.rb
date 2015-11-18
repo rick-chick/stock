@@ -190,4 +190,10 @@ class Stocks < Array
     end 
     stddev /= stocks.length
   end
+
+  def diff_rate(length = 1)
+    calc(length+1) do |stocks|
+      (stocks.last.value - stocks.first.value) / stocks.first.value.abs
+    end
+  end
 end
