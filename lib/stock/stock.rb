@@ -280,7 +280,7 @@ class Pair < Stock
     params = [code1, code2, to, count]
     sql = <<-SQL
       select  stocks.id
-            , stocks.close
+            , stocks.low
             , pair_times.code1
             , pair_times.code2
             , pair_times.time
@@ -300,7 +300,7 @@ class Pair < Stock
       s = Pair.new
       s.key   = PairTime.new(row["code1"], row["code2"], Time.parse(row["time"]))
       s.id    = row["id"]
-      s.value = row["close"].to_f
+      s.value = row["low"].to_f
       stocks.unshift s
     end
     stocks
