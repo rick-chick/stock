@@ -1,6 +1,7 @@
 require File.expand_path(File.dirname(__FILE__)) + '/../spec_helper.rb'
 
-pending "Pair" do
+describe "Pair" do
+  pending ""
 
   describe "insert" do
     context "when some data inserted" do

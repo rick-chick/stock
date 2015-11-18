@@ -352,13 +352,13 @@ describe "Player" do
 
     specify{expect(player.buy[1].sell?).to be true}
 
-    specify{expect(player.buy[0].price).to be board1.buy + player.tick }
+    specify{expect(player.buy[0].price).to eq board1.buy + player.tick }
 
-    specify{expect(player.buy[0].volume).to be player.volume}
+    specify{expect(player.buy[0].volume).to eq player.volume}
 
-    specify{expect(player.buy[1].price).to be board2.sell - player.tick}
+    specify{expect(player.buy[1].price).to eq board2.sell - player.tick}
 
-    specify{expect(player.buy[1].volume).to be player.volume} 
+    specify{expect(player.buy[1].volume).to eq player.volume} 
 
   end
 
@@ -382,13 +382,13 @@ describe "Player" do
 
     specify{expect(player.sell[1].buy?).to be true}
 
-    specify{expect(player.sell[0].price).to be board1.sell - player.tick }
+    specify{expect(player.sell[0].price).to eq board1.sell - player.tick }
 
-    specify{expect(player.sell[0].volume).to be player.volume}
+    specify{expect(player.sell[0].volume).to eq player.volume}
 
-    specify{expect(player.sell[1].price).to be board2.buy + player.tick}
+    specify{expect(player.sell[1].price).to eq board2.buy + player.tick}
 
-    specify{expect(player.sell[1].volume).to be player.volume} 
+    specify{expect(player.sell[1].volume).to eq player.volume} 
   end
 
   describe "#repay" do
