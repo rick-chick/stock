@@ -9,11 +9,12 @@ class CreateOrderMigration < ActiveRecord::Migration
         no int4,
         force boolean, 
         price float4, 
-        volume int8, 
-        contracted_price float4, 
-        contracted_volume int8
+        volume int8,
+        trade_kbn char(1),
+        updated timestamp
       )
     SQL
+    #trade_kbn: 0 buy, 1 sell, 2 repay_buy, 3 repay_sell
 		execute "create unique index order_table_index on orders (code, date, no)"
   end
 

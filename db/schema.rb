@@ -31,14 +31,14 @@ ActiveRecord::Schema.define(version: 20151112073455) do
   add_index "code_times", ["code", "date", "time"], name: "code_time_index", unique: true, using: :btree
 
   create_table "orders", id: :bigserial, force: :cascade do |t|
-    t.string  "code",              limit: 8
-    t.date    "date"
-    t.integer "no"
-    t.boolean "force"
-    t.float   "price"
-    t.integer "volume",            limit: 8
-    t.float   "contracted_price"
-    t.integer "contracted_volume", limit: 8
+    t.string   "code",      limit: 8
+    t.date     "date"
+    t.integer  "no"
+    t.boolean  "force"
+    t.float    "price"
+    t.integer  "volume",    limit: 8
+    t.string   "trade_kbn", limit: 1
+    t.datetime "updated"
   end
 
   add_index "orders", ["code", "date", "no"], name: "order_table_index", unique: true, using: :btree
