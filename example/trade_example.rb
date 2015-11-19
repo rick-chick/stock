@@ -1,6 +1,6 @@
 require File.expand_path(File.dirname(__FILE__), '../lib/stock')
 
-codes = [1568, 1579]
+codes = ["1568", "1579"]
 board = MatsuiStock::StockBoard.new
 board.log_in(ARGV[0], ARGV[1])
 board.pin_code = ARGV[2]
@@ -9,8 +9,8 @@ board.set(codes)
 prev = nil
 point = nil
 player = Player.new
-player.tick = 10
-player.volume = 10
+player.ticks = [10, 10]
+player.volumes = [10, 10]
 player.codes = codes
 agent = SmbcStock.new
 agent.log_in ARGV[2], ARGV[3], ARGV[4]
@@ -42,7 +42,12 @@ board.watch do |boards|
       player.orders = agent.orders
     end
     player.decide do |order|
-      agent.recept order
+      result = agent.recept order
+      if result.orderd?
+        result.insert
+      else
+        raise "Miss Orderd"
+      end
     end
   end
   if agent.unloaded_over_interval?

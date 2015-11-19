@@ -337,8 +337,8 @@ describe "Player" do
     before do 
       player.codes = [board1.code, board2.code]
       player.boards = [board1, board2] 
-      player.tick = 10
-      player.volume = 50
+      player.ticks = [10, 10]
+      player.volumes = [50, 50]
     end
 
     specify do
@@ -352,13 +352,13 @@ describe "Player" do
 
     specify{expect(player.buy[1].sell?).to be true}
 
-    specify{expect(player.buy[0].price).to eq board1.buy + player.tick }
+    specify{expect(player.buy[0].price).to eq board1.buy + player.ticks[0] }
 
-    specify{expect(player.buy[0].volume).to eq player.volume}
+    specify{expect(player.buy[0].volume).to eq player.volumes[0]}
 
-    specify{expect(player.buy[1].price).to eq board2.sell - player.tick}
+    specify{expect(player.buy[1].price).to eq board2.sell - player.ticks[1]}
 
-    specify{expect(player.buy[1].volume).to eq player.volume} 
+    specify{expect(player.buy[1].volume).to eq player.volumes[1]} 
 
   end
 
@@ -367,8 +367,8 @@ describe "Player" do
     before do 
       player.codes = [board1.code, board2.code]
       player.boards = [board1, board2] 
-      player.tick = 10
-      player.volume = 50
+      player.ticks = [10, 10]
+      player.volumes = [50,40]
     end
 
     specify do
@@ -382,13 +382,13 @@ describe "Player" do
 
     specify{expect(player.sell[1].buy?).to be true}
 
-    specify{expect(player.sell[0].price).to eq board1.sell - player.tick }
+    specify{expect(player.sell[0].price).to eq board1.sell - player.ticks[0] }
 
-    specify{expect(player.sell[0].volume).to eq player.volume}
+    specify{expect(player.sell[0].volume).to eq player.volumes[0]}
 
-    specify{expect(player.sell[1].price).to eq board2.buy + player.tick}
+    specify{expect(player.sell[1].price).to eq board2.buy + player.ticks[1]}
 
-    specify{expect(player.sell[1].volume).to eq player.volume} 
+    specify{expect(player.sell[1].volume).to eq player.volumes[1]} 
   end
 
   describe "#repay" do
@@ -397,8 +397,8 @@ describe "Player" do
       player.codes = codes
       player.boards = [board1, board2] 
       player.hands = [buy_hand, sell_hand]
-      player.tick = 10
-      player.volume = 50
+      player.ticks = [10, 10]
+      player.volumes = [50, 40]
     end
 
     specify do
@@ -412,9 +412,9 @@ describe "Player" do
 
     specify{expect(player.repay[1].repay?).to be true}
 
-    specify{expect(player.repay[0].price).to eq board1.sell - player.tick}
+    specify{expect(player.repay[0].price).to eq board1.sell - player.ticks[0]}
 
-    specify{expect(player.repay[1].price).to eq board2.buy + player.tick}
+    specify{expect(player.repay[1].price).to eq board2.buy + player.ticks[1]}
 
   end
 

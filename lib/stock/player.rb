@@ -1,7 +1,7 @@
 #encoding: utf-8
 class Player
 
-  attr_accessor :boards, :hands, :orders, :tick, :volume
+  attr_accessor :boards, :hands, :orders, :ticks, :volumes
 
   def codes=(codes)
     @codes = []
@@ -64,14 +64,14 @@ class Player
     board1 = @boards.find {|b| b.code == @codes[0] }
     result << Order::Buy.new(
       code: @codes[0],
-      price: board1.buy + @tick,
-      volume: @volume,
+      price: board1.buy + @ticks[0],
+      volume: @volumes[0],
     )
     board2 = @boards.find {|b| b.code == @codes[1] }
     result << Order::Sell.new(
       code: @codes[1],
-      price: board2.sell - @tick,
-      volume: @volume,
+      price: board2.sell - @ticks[1],
+      volume: @volumes[1],
     )
     result
   end
@@ -82,14 +82,14 @@ class Player
     board1 = @boards.find {|b| b.code == @codes[0] }
     result << Order::Sell.new(
       code: @codes[0],
-      price: board1.sell - @tick,
-      volume: @volume,
+      price: board1.sell - @ticks[0],
+      volume: @volumes[0],
     )
     board2 = @boards.find {|b| b.code == @codes[1] }
     result << Order::Buy.new(
       code: @codes[1],
-      price: board2.buy + @tick,
-      volume: @volume,
+      price: board2.buy + @ticks[1],
+      volume: @volumes[1],
     )
     result
   end
@@ -97,15 +97,15 @@ class Player
   def repay
     validate_board
     result = []
-    @codes.each do |code|
+    @codes.each_with_index do |code, i|
       board = @boards.find {|b| b.code == code }
       @hands.find_all {|h| h.code == code}.each do |hand|
         order = hand.to_o
         case hand.trade_kbn
         when :buy
-          order.price = board.sell - @tick
+          order.price = board.sell - @ticks[i]
         when :sell
-          order.price = board.buy + @tick
+          order.price = board.buy + @ticks[i]
         end
         result << order
       end
@@ -125,9 +125,9 @@ class Player
       return OrderStatus.current = OrderStatus::PENDING
     end
     bols = stocks.diff_rate.bol(30)
-    if bols[-1].value < -1.5
+    if bols[-1].value < -1
       OrderStatus.current = OrderStatus::BUY
-    elsif bols[-1].value > 1.5
+    elsif bols[-1].value > 1
       OrderStatus.current = OrderStatus::SELL
     else
       OrderStatus.current = OrderStatus::PENDING
