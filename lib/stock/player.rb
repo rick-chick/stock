@@ -124,10 +124,10 @@ class Player
     if stocks.length < 31
       return OrderStatus.current = OrderStatus::PENDING
     end
-    bols = stocks.diff_rate.bol(30)
-    if bols[-1].value < -1
+    bols = stocks.bol(30)
+    if bols[-1].value < -2
       OrderStatus.current = OrderStatus::BUY
-    elsif bols[-1].value > 1
+    elsif bols[-1].value > 2
       OrderStatus.current = OrderStatus::SELL
     else
       OrderStatus.current = OrderStatus::PENDING
