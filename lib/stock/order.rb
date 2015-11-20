@@ -89,7 +89,40 @@ class Order
   end
 
   def insert
-    p self
+    sql =<<-SQL
+      insert into orders (
+        no,
+        date,
+        force,
+        price,
+        volume,
+        trade_kbn,
+        updated
+      ) values ( $1, $2, $3, $4, $5, $6, current_timestamp)
+    SQL
+    trade_kbn = case self
+                when Buy::Repay
+                  2
+                when Sell::Repay
+                  3
+                when Buy
+                  0
+                when Sell
+                  1
+                end
+    params = [
+      @no.to_i,
+      @date,
+      @force,
+      @price.to_f,
+      @volume.to_i,
+      trade_kbn.to_s,
+    ]
+    Db.conn.exec(sql, params)
+    1
+  rescue => ex
+    p ex
+    0
   end
 
   class Buy < Order
