@@ -5,7 +5,7 @@ class CreateOrderMigration < ActiveRecord::Migration
       create table orders (
         id bigserial primary key, 
         code varchar(8),
-        date date, 
+        date timestamp, 
         no int4,
         force boolean, 
         price float4, 

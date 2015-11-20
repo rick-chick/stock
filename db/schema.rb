@@ -32,7 +32,7 @@ ActiveRecord::Schema.define(version: 20151112073455) do
 
   create_table "orders", id: :bigserial, force: :cascade do |t|
     t.string   "code",      limit: 8
-    t.date     "date"
+    t.datetime "date"
     t.integer  "no"
     t.boolean  "force"
     t.float    "price"
