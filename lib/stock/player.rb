@@ -13,6 +13,7 @@ class Player
     case assemble_status
     when AssembleStatus::BE_CONTRACTED
       orders = @orders.find_all {|o| o.orderd? }.map do |order|
+        order.date = Time.now
         order.force = true
         order.edited = true
         order
