@@ -92,13 +92,14 @@ class Order
     sql =<<-SQL
       insert into orders (
         no,
+        code, 
         date,
         force,
         price,
         volume,
         trade_kbn,
         updated
-      ) values ( $1, $2, $3, $4, $5, $6, current_timestamp)
+      ) values ( $1, $2, $3, $4, $5, $6, $7, current_timestamp)
     SQL
     trade_kbn = case self
                 when Buy::Repay
@@ -111,11 +112,12 @@ class Order
                   1
                 end
     params = [
-      @no.to_i,
+      @no,
+      @code,
       @date,
       @force,
-      @price.to_f,
-      @volume.to_i,
+      @price,
+      @volume,
       trade_kbn.to_s,
     ]
     Db.conn.exec(sql, params)
