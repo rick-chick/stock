@@ -61,7 +61,6 @@ class SmbcStock
     order
   rescue => e
     order.status = Status::Denied.new
-    raise(StandardError,e.message+'!!',e.backtrace)
   ensure
     @driver.navigate.to @torihiki_url
     @last_loaded = Time.now
