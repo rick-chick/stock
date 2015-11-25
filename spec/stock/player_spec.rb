@@ -133,6 +133,7 @@ describe "Player" do
 
     context "assemble_status.be_contarcted" do
       before {allow(player).to receive(:assemble_status).and_return(AssembleStatus::BE_CONTRACTED)}
+      before {player.codes = codes}
 
       context "when buy order is left" do
         before{player.orders = [buy_order]}

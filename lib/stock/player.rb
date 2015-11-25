@@ -12,11 +12,13 @@ class Player
     orders = []
     case assemble_status
     when AssembleStatus::BE_CONTRACTED
-      orders = @orders.find_all {|o| o.orderd? }.map do |order|
-        order.date = Time.now
-        order.force = true
-        order.edited = true
-        order
+      @codes.each_with_index do |code, i|
+        @orders.find_all {|o| o.orderd? and o.code == code}.map do |order|
+          order.date = Time.now
+          order.edited = true
+          order.force = true
+          orders << order
+        end
       end
     when AssembleStatus::PROCESSING
     when AssembleStatus::COMPLETE
