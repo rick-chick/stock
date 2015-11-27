@@ -10,7 +10,7 @@ prev = nil
 point = nil
 player = Player.new
 player.ticks = [10, 10]
-player.volumes = [10, 10]
+player.volumes = [20, 20]
 player.codes = codes
 agent = SmbcStock.new
 agent.log_in ARGV[2], ARGV[3], ARGV[4]
@@ -42,11 +42,12 @@ board.watch do |boards|
       player.orders = agent.orders
     end
     player.decide do |order|
-      result = agent.recept order
-      if result.orderd?
-        result.insert
-      else
-        raise "Miss Orderd"
+      while true
+        result = agent.recept(order)
+        if result.orderd?
+          result.insert
+          break
+        end
       end
     end
   end
