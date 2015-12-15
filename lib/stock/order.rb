@@ -165,6 +165,32 @@ class Order
     0
   end
 
+  def <=>(other)
+    a = case self
+    when Order::Buy
+      0
+    when Order::Sell
+      1
+    when Order::Buy::Repay
+      2
+    when Order::Sell::Repay
+      3
+    end
+
+    b = case other
+    when Order::Buy
+      0
+    when Order::Sell
+      1
+    when Order::Buy::Repay
+      2
+    when Order::Sell::Repay
+      3
+    end
+
+    a <=> b
+  end
+
   class Buy < Order
     class Repay < Buy; end
   end
