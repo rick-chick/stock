@@ -16,6 +16,7 @@ agent = SmbcStock.new
 agent.log_in ARGV[2], ARGV[3], ARGV[4]
 player.hands = agent.hands
 player.orders = agent.orders
+invalid_orders = []
 board.watch do |boards|
   board1 = boards.find {|a| a.code == codes[0]}
   board2 = boards.find {|a| a.code == codes[1]}
@@ -40,18 +41,39 @@ board.watch do |boards|
     if player.have_uncontracted_order?
       player.hands = agent.hands
       player.orders = agent.orders
+    else
+      invalid_orders = []
     end
+
+    tmp = []
+    invalid_orders.each do |order|
+      result = agent.recept(order)
+      if result.orderd?
+        result.insert
+      else
+        tmp << order
+      end
+    end
+    invalid_orders = tmp
+    invalid_orders.sort! {|a, b| a <=> b}
+
     player.decide do |order|
-      while true
-        result = agent.recept(order)
-        if result.orderd?
-          result.insert
-          break
-        end
+      result = agent.recept(order)
+      if result.orderd?
+        result.insert
+      else
+        invalid_orders << order
       end
     end
   end
+
+  if invalid_orders.length > 0
+    p 'invalid_orders'
+    p invalid_orders
+  end
+
   if agent.unloaded_over_interval?
+    p 'reload'
     agent.reload
   end
   true
