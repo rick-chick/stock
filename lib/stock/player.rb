@@ -23,6 +23,14 @@ class Player
     when AssembleStatus::PROCESSING
     when AssembleStatus::COMPLETE
       case order_status
+      when OrderStatus::TAKE_PROFIT
+        case hold_status
+        when HoldStatus::NONE
+        when HoldStatus::BUY
+          orders = [repay, sell]
+        when HoldStatus::SELL
+          orders = [repay, buy]
+        end
       when OrderStatus::BUY
         case hold_status
         when HoldStatus::NONE
@@ -123,6 +131,26 @@ class Player
   end
 
   def order_status
+    board1 = @boards.find {|b| b.code == @codes[0]}
+    board2 = @boards.find {|b| b.code == @codes[1]}
+    last_orders = Order.last_orders
+    last_order1 = last_orders.find {|o| o.code == @codes[0] and not o.repay?}
+    last_order2 = last_orders.find {|o| o.code == @codes[1] and not o.repay?}
+    if last_order1 and last_order2
+      last_diff = last_order1.price - last_order2.price
+      case
+      when last_order1.buy?
+        current_diff = board1.sell - @ticks[0] - ( board2.buy + @ticks[1] )
+        if current_diff - last_diff >= @ticks[0] * 2
+          return OrderStatus.current = OrderStatus::TAKE_PROFIT
+        end
+      when last_order1.sell?
+        current_diff = board1.buy + @ticks[0] - ( board2.sell - @ticks[1] )
+        if last_diff - current_diff >= @ticks[0] * 2
+          return OrderStatus.current = OrderStatus::TAKE_PROFIT
+        end
+      end
+    end
     stocks = Pair.select_equilibrium_price(@codes[0], @codes[1], Time.now, 31)
     if stocks.length < 31
       return OrderStatus.current = OrderStatus::PENDING
@@ -227,6 +255,7 @@ class OrderStatus < Status
   BUY = OrderStatus.new("buy")
   SELL = OrderStatus.new("sell")
   LOSS_CUT = OrderStatus.new("loss_cut")
+  TAKE_PROFIT = OrderStatus.new("take_profit")
   PENDING = OrderStatus.new("pending")
 end
 
