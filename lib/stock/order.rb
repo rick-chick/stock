@@ -88,6 +88,44 @@ class Order
       self.kind_of? Order::Buy::Repay
   end
 
+  def self.last_orders
+    sql =<<-SQL
+      select orders.no
+           , orders.code
+           , orders.date
+           , orders.force
+           , orders.price
+           , orders.volume
+        from orders
+        join (select *
+                from orders 
+               where force = false 
+            order by date desc 
+               limit 1 
+             ) latest
+          on orders.date = latest.date
+    order by orders.trade_kbn
+    SQL
+    result = []
+    Db.conn.exec(sql).each do |r|
+      hash = {
+        no: r["no"],
+        code: r["code"],
+        date: r["date"],
+        force: r["force"],
+        price: r["price"],
+        volume: r["volume"],
+      }
+      is_buy = r["trade_kbn"].to_i == 0 or r["trade_kbn"].to_i == 2
+      is_repay = r["trade_kbn"].to_i > 1
+      result << Order.create(hash, is_buy, is_repay)
+    end
+    result
+  rescue => ex
+    p ex
+    []
+  end
+
   def insert
     sql =<<-SQL
       insert into orders (
