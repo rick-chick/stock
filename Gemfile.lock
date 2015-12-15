@@ -75,6 +75,7 @@ GEM
     loofah (2.0.3)
       nokogiri (>= 1.5.9)
     lumberjack (1.0.9)
+    method_hooker (1.0.0)
     method_source (0.8.2)
     mime-types (2.6.2)
     mini_portile (0.6.2)
@@ -166,6 +167,7 @@ DEPENDENCIES
   guard
   guard-rspec
   guard-spork
+  method_hooker
   nokogiri
   parallel
   pg
@@ -176,6 +178,3 @@ DEPENDENCIES
   rspec
   spork
   standalone_migrations
-
-BUNDLED WITH
-   1.10.6
