@@ -10,6 +10,7 @@ gem 'rack'
 gem 'capybara'
 gem 'poltergeist'
 gem 'phantomjs'
+gem 'method_hooker'
 
 gem 'spork'
 gem 'guard'
