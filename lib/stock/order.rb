@@ -96,6 +96,7 @@ class Order
            , orders.force
            , orders.price
            , orders.volume
+           , orders.trade_kbn
         from orders
         join (select *
                 from orders 
@@ -104,7 +105,8 @@ class Order
                limit 1 
              ) latest
           on orders.date = latest.date
-    order by orders.trade_kbn
+    order by orders.code
+           , orders.trade_kbn
     SQL
     result = []
     Db.conn.exec(sql).each do |r|
