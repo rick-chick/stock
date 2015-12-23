@@ -27,9 +27,9 @@ class Player
         case hold_status
         when HoldStatus::NONE
         when HoldStatus::BUY
-          orders = [repay, sell]
+          orders = repay
         when HoldStatus::SELL
-          orders = [repay, buy]
+          orders = repay
         end
       when OrderStatus::BUY
         case hold_status
@@ -64,6 +64,7 @@ class Player
       end
     end
     if orders.flatten.length > 0
+      @loss_cut = false
       AssembleStatus.current = AssembleStatus::PROCESSING
     end
     orders.flatten.each {|order| agent.call order }
@@ -136,19 +137,39 @@ class Player
     last_orders = Order.last_orders
     last_order1 = last_orders.find {|o| o.code == @codes[0] and not o.repay?}
     last_order2 = last_orders.find {|o| o.code == @codes[1] and not o.repay?}
-    if last_order1 and last_order2
+    if last_order1 and last_order2 and 
+        (board1.buy - board2.sell + @ticks[0]) == (board1.sell - board2.buy - @ticks[1])
       last_diff = last_order1.price - last_order2.price
-      case
-      when last_order1.buy?
+
+      # take_profit
+      case HoldStatus.current
+      when HoldStatus::BUY
         current_diff = board1.sell - @ticks[0] - ( board2.buy + @ticks[1] )
-        if current_diff - last_diff >= @ticks[0] * 2
+        if current_diff - last_diff >= @ticks[0] * 3
+          p "c " + current_diff.to_s
+          p "l " + last_diff.to_s
           return OrderStatus.current = OrderStatus::TAKE_PROFIT
         end
-      when last_order1.sell?
+      when HoldStatus::SELL
         current_diff = board1.buy + @ticks[0] - ( board2.sell - @ticks[1] )
-        if last_diff - current_diff >= @ticks[0] * 2
+        if last_diff - current_diff >= @ticks[0] * 3
+          p "c " + current_diff.to_s
+          p "l " + last_diff.to_s
           return OrderStatus.current = OrderStatus::TAKE_PROFIT
         end
+      end
+
+      # loss_cut
+      case HoldStatus.current
+      when HoldStatus::BUY
+        current_diff = board1.sell - @ticks[0] - ( board2.buy + @ticks[1] )
+        @loss_cut = true if (current_diff - last_diff <= - @ticks[0] * 3)
+      when HoldStatus::SELL
+        current_diff = board1.buy + @ticks[0] - ( board2.sell - @ticks[1] )
+        @loss_cut = true if (last_diff - current_diff <= - @ticks[0] * 3)
+      end
+      if @loss_cut and current_diff == last_diff
+          return OrderStatus.current = OrderStatus::LOSS_CUT
       end
     end
     stocks = Pair.select_equilibrium_price(@codes[0], @codes[1], Time.now, 31)
@@ -208,12 +229,20 @@ class Player
     board = @boards.group_by {|b| b.code}
     uncontracteds.each do |o|
       raise OrderUndefinedCodeError if not board.key? o.code
+      idx = @codes.index o.code
+      tick = @ticks[idx]
       if o.buy?
         if board[o.code][0].buy > o.price
+          p o.code
+          p "b " + board[o.code][0].buy.to_s
+          p "o " + o.price.to_s
           return AssembleStatus.current = AssembleStatus::BE_CONTRACTED
         end
       elsif o.sell?
         if board[o.code][0].sell < o.price
+          p o.code
+          p "s " + board[o.code][0].sell.to_s
+          p "o " + o.price.to_s
           return AssembleStatus.current = AssembleStatus::BE_CONTRACTED
         end
       end
