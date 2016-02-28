@@ -13,6 +13,9 @@
 
 ActiveRecord::Schema.define(version: 20151112073455) do
 
+  # These are extensions that must be enabled in order to support this database
+  enable_extension "plpgsql"
+
   create_table "code_dates", id: :bigserial, force: :cascade do |t|
     t.string   "code",    limit: 8
     t.string   "date",    limit: 8
