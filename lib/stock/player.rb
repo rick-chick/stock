@@ -13,10 +13,16 @@ class Player
     case assemble_status
     when AssembleStatus::BE_CONTRACTED
       @codes.each_with_index do |code, i|
+			  b = @boards.find {|b| b.code == code }
         @orders.find_all {|o| o.orderd? and o.code == code}.map do |order|
           order.date = Time.now
           order.edited = true
-          order.force = true
+					case order
+					when Order::Buy, Order::Buy::Repay
+						order.price = order.price + @ticks[i]
+					when Order::Sell, Order::Sell::Repay
+						order.price = order.price - @ticks[i]
+					end
           orders << order
         end
       end
