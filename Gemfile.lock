@@ -178,3 +178,6 @@ DEPENDENCIES
   rspec
   spork
   standalone_migrations
+
+BUNDLED WITH
+   1.10.6
