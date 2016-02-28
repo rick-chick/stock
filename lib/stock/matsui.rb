@@ -182,13 +182,12 @@ class MatsuiStock
       @codes = codes
       wait_load
       es = @driver.find_elements(:css, '#design-fourRatesList > div.wrap-portfolio div.group-stock')
-      sleep 1 while not es[0].displayed?
       codes.each_with_index do |code, index|
-        input = es[index].find_element(:css, 'input')
+        input = es[index].find_element(:css, 'input.q-code')
         input.send_key ''
         input.send_key code
-        input.send_key :return
       end
+			@driver.action.send_keys :tab
     end
 
     def watch(&block)
@@ -196,7 +195,8 @@ class MatsuiStock
       start = Time.now
       begin
         if Time.now - start > 900
-          @driver.navigate.refresh
+					@driver.navigate.refresh
+					set(@codes)
           start = Time.now
         end
         wait_load
