@@ -18,7 +18,11 @@ class CodeTime < CodeDate
     end
   end
 
-  def initialize(code, date, time)
+  def initialize(code, date = nil, time = nil)
+    if not date and not time 
+      date  = Time.now.strftime('%Y%m%d')
+      time  = Time.now.strftime('%H%M')
+    end
     super(code, date)
     @time = time.to_s
     @time ||= "    "
