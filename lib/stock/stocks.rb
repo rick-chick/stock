@@ -107,7 +107,7 @@ class Stocks < Array
     calc(length) do |stocks|
       ave = calc_ave(stocks)
       dev = Math.sqrt(calc_dev(stocks, ave))
-      [(stocks[-1].value - ave) / dev, {ave: ave, upper: ave + dev, bottom: ave - dev}]
+      [(stocks[-1].value - ave) / dev, {ave: ave, upper: ave + dev, bottom: ave - dev, dev: dev}]
     end
   end
 
