@@ -200,6 +200,8 @@ class MatsuiStock
           start = Time.now
         end
         wait_load
+			rescue => ex
+				p ex.backtrace
       end while block.call(read)
     end
 
@@ -245,6 +247,9 @@ class MatsuiStock
         result << Board.new(hash)
       end
       result
+		rescue => ex
+			p ex.backtrace
+			[]
     end
 
   end
