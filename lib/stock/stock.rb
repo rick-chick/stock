@@ -47,7 +47,7 @@ class Stock
   def self.opens(from, to, hash={})
     read(from, to, "open", hash)
   end
-  
+
   def self.highs(from, to, hash={})
     read(from, to, "high", hash)
   end
@@ -157,7 +157,7 @@ class Daily < Stock
        where   code_dates.date  >=  $1
           and  code_dates.date  <=  $2
           and  stocks.id = code_dates.id
-              #{conditions}
+            #{conditions}
       order by code, date
     SQL
 
@@ -175,7 +175,7 @@ class Daily < Stock
 end
 
 class Minute < Stock
-  
+
   attr_accessor :time
 
   def self.blank_instances(code, date)
@@ -188,43 +188,70 @@ class Minute < Stock
     if not hash.kind_of? Hash 
       raise "Stock.read(from, to, column, options) options must be hash"
     end
-    params = [from, to]
-    params = [from, to]
     conditions = ""
-    if hash.key?(:code) then
-      params << hash[:code]
-      conditions = "and  code_times.code = $3"
-    end
-
-    sql = <<-SQL
-      select  stocks.id
-            , stocks.#{column}
-            , code_times.code
-            , code_times.date
-            , code_times.time
-        from  stocks
-            , code_times
-       where  code_times.date  >=  $1
-         and  code_times.date  <=  $2
-         and  code_times.id = stocks.id
+    if hash.key?(:count) 
+      params = [hash[:count]]
+      if hash.key?(:code) 
+        params << hash[:code]
+        conditions = "and  code_times.code = $2"
+      end
+      sql = <<-SQL
+        select  stocks.id
+              , stocks.#{column}
+              , code_times.code
+              , code_times.date
+              , code_times.time
+          from  stocks
+              , code_times
+         where  code_times.id = stocks.id
               #{conditions}
-      order by code, date, time
-    SQL
-
-    stocks = Stocks.new
-    Db.conn.exec(sql, params).each do |row|
-      s = Minute.new
-      s.key   = CodeTime.new(row["code"], row["date"], row["time"])
-      s.id    = row["id"]
-      s.value = row[column].to_f
-      stocks << s
+        order by code, date desc, time desc
+        limit  $1 offset 0
+      SQL
+      stocks = Stocks.new
+      Db.conn.exec(sql, params).each do |row|
+        s = Minute.new
+        s.key   = CodeTime.new(row["code"], row["date"], row["time"])
+        s.id    = row["id"]
+        s.value = row[column].to_f
+        stocks.unshift s
+      end
+      stocks
+    else
+      params = [from, to]
+      if hash.key?(:code) 
+        params << hash[:code]
+        conditions = "and  code_times.code = $3"
+      end
+      sql = <<-SQL
+        select  stocks.id
+              , stocks.#{column}
+              , code_times.code
+              , code_times.date
+              , code_times.time
+          from  stocks
+              , code_times
+         where  code_times.date  >=  $1
+         and  code_times.date  <=  $2
+           and  code_times.id = stocks.id
+              #{conditions}
+        order by code, date, time
+      SQL
+      stocks = Stocks.new
+      Db.conn.exec(sql, params).each do |row|
+        s = Minute.new
+        s.key   = CodeTime.new(row["code"], row["date"], row["time"])
+        s.id    = row["id"]
+        s.value = row[column].to_f
+        stocks << s
+      end
+      stocks
     end
-    stocks
   end
 end
 
 class Pair < Stock
-  
+
   attr_accessor :time, :code1, :code2
 
   def self.blank_instances(code, date)
@@ -261,7 +288,7 @@ class Pair < Stock
        where  pair_times.time  >=  to_timestamp($1, 'yyyymmddhh24miss')
          and  pair_times.time  <=  to_timestamp($2, 'yyyymmddhh24miss')
          and  pair_times.id = stocks.id
-              #{conditions}
+            #{conditions}
       order by code1, code2,time
     SQL
 
@@ -306,3 +333,4 @@ class Pair < Stock
     stocks
   end
 end
+
