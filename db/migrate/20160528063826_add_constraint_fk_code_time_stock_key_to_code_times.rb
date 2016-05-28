@@ -1,6 +1,13 @@
 class AddConstraintFkCodeTimeStockKeyToCodeTimes < ActiveRecord::Migration
   def up
-		execute('alter table code_times add constraint fk_code_time_stock_key foreign key (stock_key_id) references stock_keys(id)')
+		execute(<<-SQL
+      alter table code_times 
+      add constraint fk_code_time_stock_key 
+      foreign key (stock_key_id) 
+      references stock_keys(id)
+      on delete cascade
+    SQL
+    )
   end
 
 	def down

@@ -1,6 +1,6 @@
-class CodeTime < CodeDate
+class CodeTime < StockKey
 
-  attr_accessor :time
+  attr_accessor :code, :date, :time
 
   MINUTES = [
   "0900", "0901", "0902", "0903", "0904", "0905", "0906", "0907", "0908", "0909", "0910", "0911", "0912", "0913", "0914", "0915", "0916", "0917", "0918", "0919", "0920", "0921", "0922", "0923", "0924", "0925", "0926", "0927", "0928", "0929", "0930", "0931", "0932", "0933", "0934", "0935", "0936", "0937", "0938", "0939", "0940", "0941", "0942", "0943", "0944", "0945", "0946", "0947", "0948", "0949", "0950", "0951", "0952", "0953", "0954", "0955", "0956", "0957", "0958", "0959",
@@ -23,8 +23,11 @@ class CodeTime < CodeDate
       date  = Time.now.strftime('%Y%m%d')
       time  = Time.now.strftime('%H%M')
     end
-    super(code, date)
+    @code = code.to_s
+    @date = date.to_s
     @time = time.to_s
+    @code ||= "        "
+    @date ||= "        "
     @time ||= "    "
   end
 
@@ -40,7 +43,7 @@ class CodeTime < CodeDate
     @key ||= @code + @date + @time
   end
 
-  def id(code, date, time)
+  def self.id(code, date, time)
     return @id if @id
     sql = <<-SQL
     select id 
@@ -59,10 +62,30 @@ class CodeTime < CodeDate
     nil
   end
 
+  def id
+    return @id if @id
+    sql = <<-SQL
+    select id 
+      from code_time
+     where code   = $1
+       and date   = $2
+       and time   = $3
+    SQL
+    params = []
+    params << @code.to_s
+    params << @date.to_s
+    params << @time.to_s
+    Db.conn.exec(sql, params).each do |row|
+      return @id = row["id"]
+    end
+    nil
+  end
+
   def insert
+    super
     sql = <<-SQL
       insert into code_times
-      (id, code, date, time, updated)
+      (stock_key_id, code, date, time, updated)
       values
       ($1, $2, $3, $4, current_timestamp)
     SQL
@@ -81,5 +104,4 @@ class CodeTime < CodeDate
     p ex.backtrace
     0
   end
-
 end

@@ -1,6 +1,6 @@
-class PairTime
+class PairTime < StockKey
 
-  attr_accessor :code1, :code2, :time, :id
+  attr_accessor :code1, :code2, :time
 
   def initialize(code1, code2, time)
     @code1 = code1.to_s
@@ -30,10 +30,6 @@ class PairTime
     @time = subkey[-14..-1]
   end
 
-  def <=>(o)
-    to_s <=> o.to_s
-  end
-
   def to_s
     @key ||= @code1 + @code2 + @time.strftime('%Y%m%d%H%M%S')
   end
@@ -58,9 +54,10 @@ class PairTime
   end
 
   def insert
+    super
     sql = <<-SQL
       insert into pair_times
-      (id, code1, code2, time, updated)
+      (stock_key_id, code1, code2, time, updated)
       values
       ($1, $2, $3, $4, current_timestamp)
     SQL

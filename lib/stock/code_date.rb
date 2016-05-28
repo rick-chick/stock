@@ -1,6 +1,6 @@
-class CodeDate
+class CodeDate < StockKey
 
-  attr_accessor :code, :date, :id
+  attr_accessor :code, :date
 
   def self.blank_instances(code, date)
     [CodeDate.new(code, date)]
@@ -8,7 +8,11 @@ class CodeDate
 
   def initialize(code = nil, date = nil)
     @code = code.to_s
-    @date = date.to_s
+    if date.nil?
+      @date = Time.now.strftime('%Y%m%d')
+    else
+      @date = date.to_s
+    end
     @code ||= "        "
     @date ||= "        "
   end
@@ -19,10 +23,6 @@ class CodeDate
 
   def subkey=(subkey)
     @date = subkey[-8..-1]
-  end
-
-  def <=>(o)
-    to_s <=> o.to_s
   end
 
   def to_s
@@ -47,9 +47,10 @@ class CodeDate
   end
 
   def insert
+    super
     sql = <<-SQL
       insert into code_dates
-      (id, code, date, updated)
+      (stock_key_id, code, date, updated)
       values
       ($1, $2, $3, current_timestamp)
     SQL

@@ -1,6 +1,13 @@
 class AddConstraintFkStockStockKeyToStocks < ActiveRecord::Migration
   def up
-		execute('alter table stocks add constraint fk_stock_stock_key foreign key (stock_key_id) references stock_keys(id)')
+		execute(<<-SQL
+      alter table stocks 
+      add constraint fk_stock_stock_key 
+      foreign key (stock_key_id) 
+      references stock_keys(id)
+      on delete cascade
+    SQL
+           )
   end
 
 	def down

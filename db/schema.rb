@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160528064708) do
+ActiveRecord::Schema.define(version: 20160528092111) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -45,7 +45,7 @@ ActiveRecord::Schema.define(version: 20160528064708) do
 
   add_index "code_dates", ["code", "date"], name: "code_date_index", unique: true, using: :btree
 
-  create_table "code_times", id: :bigserial, force: :cascade do |t|
+  create_table "code_times", id: false, force: :cascade do |t|
     t.string   "code",         limit: 8
     t.string   "date",         limit: 8
     t.string   "time",         limit: 4
@@ -69,7 +69,7 @@ ActiveRecord::Schema.define(version: 20160528064708) do
 
   add_index "orders", ["code", "date", "no"], name: "order_table_index", unique: true, using: :btree
 
-  create_table "pair_times", id: :bigserial, force: :cascade do |t|
+  create_table "pair_times", id: false, force: :cascade do |t|
     t.string   "code1",        limit: 8
     t.string   "code2",        limit: 8
     t.datetime "time"
@@ -100,9 +100,9 @@ ActiveRecord::Schema.define(version: 20160528064708) do
     t.integer  "stock_key_id", limit: 8
   end
 
-  add_foreign_key "code_dates", "stock_keys", name: "fk_code_date_stock_key"
-  add_foreign_key "code_times", "stock_keys", name: "fk_code_time_stock_key"
-  add_foreign_key "pair_times", "stock_keys", name: "fk_pair_time_stock_key"
+  add_foreign_key "code_dates", "stock_keys", name: "fk_code_date_stock_key", on_delete: :cascade
+  add_foreign_key "code_times", "stock_keys", name: "fk_code_time_stock_key", on_delete: :cascade
+  add_foreign_key "pair_times", "stock_keys", name: "fk_pair_time_stock_key", on_delete: :cascade
   add_foreign_key "splits", "code_dates", column: "id", name: "splits_id_fkey"
-  add_foreign_key "stocks", "stock_keys", name: "fk_stock_stock_key"
+  add_foreign_key "stocks", "stock_keys", name: "fk_stock_stock_key", on_delete: :cascade
 end
