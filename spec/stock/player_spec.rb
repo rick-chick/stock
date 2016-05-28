@@ -29,17 +29,17 @@ describe "Player" do
   end
 
   let(:buy_orders) do
-      [Order::Buy.new(
-        code: codes[0] ,
-        price: 1000 ,
-        volume: 10 ,
-       ),
-       Order::Buy.new(
-         code: codes[1],
-         price: 1100 ,
-         volume: 10 ,
-       )
-      ]
+    [Order::Buy.new(
+      code: codes[0] ,
+      price: 1000 ,
+      volume: 10 ,
+    ),
+    Order::Buy.new(
+      code: codes[1],
+      price: 1100 ,
+      volume: 10 ,
+    )
+    ]
   end
 
   let(:sell_orders) do
@@ -47,12 +47,12 @@ describe "Player" do
       code: codes[0],
       price: 1000 ,
       volume: 10 ,
-     ),
-     Order::Sell.new(
-       code: codes[1],
-       price: 1100 ,
-       volume: 10 ,
-     )
+    ),
+    Order::Sell.new(
+      code: codes[1],
+      price: 1100 ,
+      volume: 10 ,
+    )
     ]
   end
 
@@ -130,23 +130,27 @@ describe "Player" do
   end
 
   describe "#decide" do
+    before {player.codes = codes}
+    before {player.boards = [board1, board2]}
+    before {player.ticks = [10, 10]}
+    before {player.volumes = [10, 10]}
+    before {allow(player).to receive(:hold_status).and_return(HoldStatus::NONE)}
 
     context "assemble_status.be_contarcted" do
       before {allow(player).to receive(:assemble_status).and_return(AssembleStatus::BE_CONTRACTED)}
-      before {player.codes = codes}
 
       context "when buy order is left" do
         before{player.orders = [buy_order]}
 
-        specify{expect{player.decide {}}.to change{buy_order.force}.from(false).to(true)}
+        specify{expect{player.decide {}}.not_to change{buy_order.force}}
       end
 
       context "when buy and sell order is left" do
         before{player.orders = [buy_order, sell_order]}
 
-        specify{expect{player.decide {}}.to change{buy_order.force}.from(false).to(true)}
+        specify{expect{player.decide {}}.not_to change{buy_order.force}}
 
-        specify{expect{player.decide {}}.to change{sell_order.force}.from(false).to(true)}
+        specify{expect{player.decide {}}.not_to change{sell_order.force}}
       end
     end
 
@@ -192,24 +196,24 @@ describe "Player" do
           specify{ expect(player.decide{}.length).to eq 2 }
 
           specify do "order must be created at Player#buy"
-            player.decide do |order| 
-              expect(buy_orders.include? order).to be true
-            end
+          player.decide do |order| 
+            expect(buy_orders.include? order).to be true
+          end
           end
 
           specify do "Player#repay must not be called"
-            expect(player).not_to receive(:repaly)
-            player.decide {}
+          expect(player).not_to receive(:repaly)
+          player.decide {}
           end
 
           specify do "Player#sell must not be called"
-            expect(player).not_to receive(:sell)
-            player.decide {}
+          expect(player).not_to receive(:sell)
+          player.decide {}
           end
 
           specify do "AssembleStatus change to PROCESSING"
-            expect(AssembleStatus).to receive(:current=).with(AssembleStatus::PROCESSING)
-            player.decide {}
+          expect(AssembleStatus).to receive(:current=).with(AssembleStatus::PROCESSING)
+          player.decide {}
           end
         end
 
@@ -222,19 +226,19 @@ describe "Player" do
           specify{ expect(player.decide{}.length).to eq 2 }
 
           specify do "order must be created at Player#sell"
-            player.decide do |order| 
-              expect(sell_orders.include? order).to be true
-            end
+          player.decide do |order| 
+            expect(sell_orders.include? order).to be true
+          end
           end
 
           specify do "Player#repay must not be called"
-            expect(player).not_to receive(:repaly)
-            player.decide {}
+          expect(player).not_to receive(:repaly)
+          player.decide {}
           end
 
           specify do "Player#buy must not be called"
-            expect(player).not_to receive(:buy)
-            player.decide {}
+          expect(player).not_to receive(:buy)
+          player.decide {}
           end
         end
 
@@ -242,8 +246,8 @@ describe "Player" do
           before { allow(player).to receive(:order_status).and_return(OrderStatus::LOSS_CUT) }
 
           specify do "Player#repay must not be called"
-            expect(player).not_to receive(:repaly)
-            player.decide {}
+          expect(player).not_to receive(:repaly)
+          player.decide {}
           end
         end
       end
@@ -312,20 +316,20 @@ describe "Player" do
           before { allow(player).to receive(:order_status).and_return(OrderStatus::LOSS_CUT) }
 
           specify do "Player#repay must be called"
-            expect(player).to receive(:repay).and_return([])
-            player.decide {}
+          expect(player).to receive(:repay).and_return([])
+          player.decide {}
           end
 
-          specify do "Player#buy must not be called"
-            allow(player).to receive(:repay).and_return([])
-            expect(player).not_to receive(:buy) 
-            player.decide {}
+          specify do "Player#buy must be called"
+          allow(player).to receive(:repay).and_return([buy_order])
+          expect(player).to receive(:buy).and_return([buy_order])
+          player.decide {}
           end
 
           specify do "Player#sell must not be called"
-            allow(player).to receive(:repay).and_return([])
-            expect(player).not_to receive(:sell) 
-            player.decide {}
+          allow(player).to receive(:repay).and_return([])
+          expect(player).not_to receive(:sell) 
+          player.decide {}
           end
 
         end
@@ -461,7 +465,7 @@ describe "Player" do
     end
 
     context "when all code in hand" do
-      
+
       specify "and code1 is buy and code2 is sell " do
         player.hands = [buy_hand, sell_hand]
         expect(player.hold_status).to eq HoldStatus::BUY
@@ -484,6 +488,7 @@ describe "Player" do
   describe "#assemble_status" do
     before{player.codes = codes}
     before{player.boards = [board1, board2]}
+    before {player.ticks = [10, 10]}
 
     specify "when none order" do
       player.orders = []

@@ -3,6 +3,18 @@ require File.expand_path(File.dirname(__FILE__)) + '/../spec_helper.rb'
 describe "Pair" do
   pending ""
 
+  after do 
+    Db.conn.exec(<<-SQL
+      delete from stock_keys a 
+      where exists( select * 
+                      from pair_times b 
+                     where a.id = b.stock_key_id 
+                       and b.code1 = 'test1'
+                       and b.code2 = 'test2') 
+    SQL
+    )
+  end
+
   describe "insert" do
     context "when some data inserted" do
 
@@ -10,7 +22,7 @@ describe "Pair" do
         pair = Pair.new
         pair.close = 1500
         pair.volume = 0
-        pair.key = PairTime.new("1579", "1568", Time.now)
+        pair.key = PairTime.new("test1", "test2", Time.now)
         ret = pair.insert
         expect(ret).to be(1)
       end
@@ -32,7 +44,7 @@ describe "Pair" do
         pair = Pair.new
         pair.close = close
         pair.volume = volume
-        pair.key = PairTime.new("1568", "1579", target)
+        pair.key = PairTime.new("test1", "test2", target)
         pair.insert
       end
 

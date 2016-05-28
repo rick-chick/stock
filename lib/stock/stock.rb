@@ -1,6 +1,6 @@
 class Stock 
 
-  attr_accessor :options, :key, :value, :open, :high, :low, :close, :adjusted, :volume, :id
+  attr_accessor :options, :key, :value, :open, :high, :low, :close, :adjusted, :volume
 
   def initialize(key = nil, *value)
     @key     = key
@@ -16,28 +16,20 @@ class Stock
     @key.subkey = subkey
   end
 
-  def code
-    @key.code
-  end
-
-  def code=(code)
-    @key.code = code
-  end
-
-  def date
-    @key.date
-  end
-
-  def date=(date)
-    @key.date = date
-  end
-
   def to_s
     "#{@key}  #{@value}"
   end
 
   def <=>(o)
     @key <=> o.key
+  end
+
+  def id
+    @key.id
+  end
+
+  def id=(id)
+    @key.id = id
   end
 
   def self.closes(from, to, hash ={})
@@ -66,7 +58,9 @@ class Stock
 
   def insert
     Db.conn.exec("begin")
+    raise "key insert missed" if @key.insert == 0
     params = []
+    params << @key.id
     params << @open.to_f
     params << @high.to_f
     params << @low.to_f
@@ -75,16 +69,11 @@ class Stock
     params << @volume.to_i
     sql =<<-SQL
       insert into stocks
-      (open, high, low, close, adjusted, volume, updated)
+      (stock_key_id, open, high, low, close, adjusted, volume, updated)
       values
-      ($1, $2, $3, $4, $5, $6, current_timestamp)
+      ($1, $2, $3, $4, $5, $6, $7, current_timestamp)
     SQL
     Db.conn.exec(sql, params)
-    Db.conn.exec("select lastval() id").each do |row|
-      @id = row["id"]
-    end
-    @key.id = @id
-    raise PG::UniqueViolation if @key.insert == 0 
     Db.conn.exec("commit")
     1
   rescue PG::UniqueViolation => ex
@@ -105,12 +94,11 @@ class Stock
       (open, high, low, close, adjusted, volume, updated)
       =
       ($2, $3, $4, $5, $6, $7, current_timestamp)
-      where id = $1
+      where stock_key_id = $1
     SQL
     params = []
-    @id ||= @key.id
-    raise "code_dates not found" if not @id
-    params << @id.to_i
+    raise "code_dates not found" if not @key.id
+    params << @key.id.to_i
     params << @open.to_f
     params << @high.to_f
     params << @low.to_f
@@ -125,10 +113,25 @@ class Stock
     puts ex.message
     0
   end
-
 end
 
 class Daily < Stock
+
+  def code
+    @key.code
+  end
+
+  def code=(code)
+    @key.code = code
+  end
+
+  def date
+    @key.date
+  end
+
+  def date=(date)
+    @key.date = date
+  end
 
   def self.blank_instances(code, date)
     CodeDate.blank_instances(code, date).map do |code_date|
@@ -148,7 +151,7 @@ class Daily < Stock
     end
 
     sql = <<-SQL
-      select  stocks.id
+      select  stocks.stock_key_id
             , stocks.#{column}
             , code_dates.code
             , code_dates.date
@@ -156,7 +159,7 @@ class Daily < Stock
             , code_dates
        where   code_dates.date  >=  $1
           and  code_dates.date  <=  $2
-          and  stocks.id = code_dates.id
+          and  stocks.stock_key_id = code_dates.stock_key_id
             #{conditions}
       order by code, date
     SQL
@@ -165,7 +168,7 @@ class Daily < Stock
     Db.conn.exec(sql, params).each do |row|
       s = Daily.new
       s.key   = CodeDate.new(row["code"], row["date"])
-      s.id    = row["id"]
+      s.id    = row["stock_key_id"]
       s.value = row[column].to_f
       stocks << s
     end
@@ -176,7 +179,29 @@ end
 
 class Minute < Stock
 
-  attr_accessor :time
+  def code
+    @key.code
+  end
+
+  def code=(code)
+    @key.code = code
+  end
+
+  def date
+    @key.date
+  end
+
+  def date=(date)
+    @key.date = date
+  end
+
+  def time
+    @key.date
+  end
+
+  def time=(time)
+    @key.time = time
+  end
 
   def self.blank_instances(code, date)
     CodeTime.blank_instances(code, date).map do |code_minute|
@@ -196,14 +221,14 @@ class Minute < Stock
         conditions = "and  code_times.code = $2"
       end
       sql = <<-SQL
-        select  stocks.id
+        select  stocks.stock_key_id
               , stocks.#{column}
               , code_times.code
               , code_times.date
               , code_times.time
           from  stocks
               , code_times
-         where  code_times.id = stocks.id
+         where  code_times.stock_key_id = stocks.stock_key_id
               #{conditions}
         order by code, date desc, time desc
         limit  $1 offset 0
@@ -212,7 +237,7 @@ class Minute < Stock
       Db.conn.exec(sql, params).each do |row|
         s = Minute.new
         s.key   = CodeTime.new(row["code"], row["date"], row["time"])
-        s.id    = row["id"]
+        s.id    = row["stock_key_id"]
         s.value = row[column].to_f
         stocks.unshift s
       end
@@ -224,7 +249,7 @@ class Minute < Stock
         conditions = "and  code_times.code = $3"
       end
       sql = <<-SQL
-        select  stocks.id
+        select  stocks.stock_key_id
               , stocks.#{column}
               , code_times.code
               , code_times.date
@@ -233,7 +258,7 @@ class Minute < Stock
               , code_times
          where  code_times.date  >=  $1
          and  code_times.date  <=  $2
-           and  code_times.id = stocks.id
+           and  code_times.stock_key_id = stocks.stock_key_id
               #{conditions}
         order by code, date, time
       SQL
@@ -241,7 +266,7 @@ class Minute < Stock
       Db.conn.exec(sql, params).each do |row|
         s = Minute.new
         s.key   = CodeTime.new(row["code"], row["date"], row["time"])
-        s.id    = row["id"]
+        s.id    = row["stock_key_id"]
         s.value = row[column].to_f
         stocks << s
       end
@@ -253,6 +278,30 @@ end
 class Pair < Stock
 
   attr_accessor :time, :code1, :code2
+
+  def code1
+    @key.code1
+  end
+
+  def code1=(code)
+    @key.code1 = code
+  end
+
+  def code2
+    @key.code2
+  end
+
+  def code2=(code)
+    @key.code2 = code
+  end
+
+  def time
+    @key.time
+  end
+
+  def time=(time)
+    @key.time = time
+  end
 
   def self.blank_instances(code, date)
     CodeTime.blank_instances(code, date).map do |code_minute|
@@ -278,7 +327,7 @@ class Pair < Stock
     end
 
     sql = <<-SQL
-      select  stocks.id
+      select  stocks.stock_key_id
             , stocks.#{column}
             , pair_times.code1
             , pair_times.code2
@@ -287,7 +336,7 @@ class Pair < Stock
             , pair_times
        where  pair_times.time  >=  to_timestamp($1, 'yyyymmddhh24miss')
          and  pair_times.time  <=  to_timestamp($2, 'yyyymmddhh24miss')
-         and  pair_times.id = stocks.id
+         and  pair_times.stock_key_id = stocks.stock_key_id
             #{conditions}
       order by code1, code2,time
     SQL
@@ -296,7 +345,7 @@ class Pair < Stock
     Db.conn.exec(sql, params).each do |row|
       s = Pair.new
       s.key   = PairTime.new(row["code1"], row["code2"], row["time"])
-      s.id    = row["id"]
+      s.id    = row["stock_key_id"]
       s.value = row[column].to_f
       stocks << s
     end
@@ -306,7 +355,7 @@ class Pair < Stock
   def self.select_equilibrium_price(code1, code2, to, count)
     params = [code1, code2, to, count]
     sql = <<-SQL
-      select  stocks.id
+      select  stocks.stock_key_id
             , stocks.low
             , pair_times.code1
             , pair_times.code2
@@ -314,7 +363,7 @@ class Pair < Stock
         from  stocks
             , pair_times
        where  pair_times.time  <=  $3
-         and  pair_times.id = stocks.id
+         and  pair_times.stock_key_id = stocks.stock_key_id
          and  pair_times.code1 = $1
          and  pair_times.code2 = $2
          and  stocks.high = stocks.low
@@ -326,11 +375,10 @@ class Pair < Stock
     Db.conn.exec(sql, params).each do |row|
       s = Pair.new
       s.key   = PairTime.new(row["code1"], row["code2"], Time.parse(row["time"]))
-      s.id    = row["id"]
+      s.id    = row["stock_key_id"]
       s.value = row["low"].to_f
       stocks.unshift s
     end
     stocks
   end
 end
-

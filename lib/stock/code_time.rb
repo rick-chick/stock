@@ -43,30 +43,11 @@ class CodeTime < StockKey
     @key ||= @code + @date + @time
   end
 
-  def self.id(code, date, time)
-    return @id if @id
-    sql = <<-SQL
-    select id 
-      from code_time
-     where code   = $1
-       and date   = $2
-       and time   = $3
-    SQL
-    params = []
-    params << code.to_s
-    params << date.to_s
-    params << time.to_s
-    Db.conn.exec(sql, params).each do |row|
-      return @id = row["id"]
-    end
-    nil
-  end
-
   def id
     return @id if @id
     sql = <<-SQL
-    select id 
-      from code_time
+    select stock_key_id
+      from code_times
      where code   = $1
        and date   = $2
        and time   = $3
@@ -76,7 +57,7 @@ class CodeTime < StockKey
     params << @date.to_s
     params << @time.to_s
     Db.conn.exec(sql, params).each do |row|
-      return @id = row["id"]
+      return @id = row["stock_key_id"]
     end
     nil
   end

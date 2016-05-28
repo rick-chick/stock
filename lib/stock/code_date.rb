@@ -32,7 +32,7 @@ class CodeDate < StockKey
   def id
     return @id if @id
     sql = <<-SQL
-      select id 
+      select stock_key_id 
         from code_dates
        where code = $1
          and date = $2
@@ -41,7 +41,7 @@ class CodeDate < StockKey
     params << @code.to_s
     params << @date.to_s
     Db.conn.exec(sql, params).each do |row|
-      return @id = row["id"]
+      return @id = row["stock_key_id"]
     end
     nil
   end

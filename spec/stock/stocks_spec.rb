@@ -98,11 +98,11 @@ describe "Stocks" do
     let(:code_date5) { CodeDate.new("1302", "20140103") }
 		let(:stocks) { 
 			ss = Stocks.new
-			ss << Stock.new(code_date1, 1)
-			ss << Stock.new(code_date2, 1)
-      ss << Stock.new(code_date3, 1)
-      ss << Stock.new(code_date4, 1)
-      ss << Stock.new(code_date5, 1)
+			ss << Daily.new(code_date1, 1)
+			ss << Daily.new(code_date2, 1)
+      ss << Daily.new(code_date3, 1)
+      ss << Daily.new(code_date4, 1)
+      ss << Daily.new(code_date5, 1)
 		}
 		specify do
 			ret = []

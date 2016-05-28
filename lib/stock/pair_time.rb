@@ -37,7 +37,7 @@ class PairTime < StockKey
   def id
     return @id if @id
     sql = <<-SQL
-      select id 
+      select stock_key_id 
         from pair_times
        where code1 = $1
          and code2 = $2
@@ -48,7 +48,7 @@ class PairTime < StockKey
     params << @code2.to_s
     params << @time
     Db.conn.exec(sql, params).each do |row|
-      return @id = row["id"]
+      return @id = row["stock_key_id"]
     end
     nil
   end
