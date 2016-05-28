@@ -95,18 +95,32 @@ class SmbcStock
     es = @driver.find_elements(:css, '#printzone input[type="text"]') 
     e = es.find {|e| e.attribute('name') == 'tseiSu'}
     e.send_key(order.volume) if e
-
     if not order.force
-      es = @driver.find_elements(:css, '#printzone > div.con_tbl_basic02 > table > tbody > tr > td > form > div > table > tbody > tr:nth-child(4) > td > div > div.con_mrg03 > table > tbody > tr > td:nth-child(1) > div.con_mrg04 > table > tbody > tr:nth-child(9) > td input[type="text"]')
+			es = @driver.find_elements(:css, '#printzone > div.con_tbl_basic02 > table > tbody > tr > td > form > div > table > tbody > tr:nth-child(4) > td > div > div.con_mrg03 > table > tbody > tr > td:nth-child(1) > table > tbody > tr:nth-child(9) input[type="text"]')
+      if es.length == 0
+				es = @driver.find_elements(:css, '#printzone > div.ml15.mr15 > form > table > tbody > tr:nth-child(4) > td > div > div.con_mrg03 > table > tbody > tr > td:nth-child(1) > div:nth-child(1) > table > tbody > tr:nth-child(9) > td > table > tbody > tr > td:nth-child(3) > input[type="text"]')
+			end
       if es.length == 0
         es = @driver.find_elements(:css, '#itanka > table > tbody > tr:nth-child(1) > td > table > tbody > tr > td:nth-child(2) > div > table > tbody > tr > td:nth-child(1) > input[type="text"]')
-        raise CantFindElementError if es.length == 0
       end
+			if es.length == 0
+				es = @driver.find_elements(:css, '#printzone > div.con_tbl_basic02 > table > tbody > tr > td > form > div > table > tbody > tr:nth-child(4) > td > div > div.con_mrg03 > table > tbody > tr > td:nth-child(1) > div.con_mrg04 > table > tbody > tr:nth-child(9) > td > input[type="text"]:nth-child(3)')
+			end
+			if es.length == 0
+				es = @driver.find_elements(:css, '#printzone > div.con_tbl_basic02 > table > tbody > tr > td > form > div > table > tbody > tr:nth-child(4) > td > div > div.con_mrg03 > table > tbody > tr > td:nth-child(1) > div.con_mrg04 > table > tbody > tr:nth-child(9) > td > table > tbody > tr > td:nth-child(3) > input[type="text"]')
+			end
+			if es.length == 0
+				es = @driver.find_elements(:css, '#printzone > div.con_tbl_basic02 > table > tbody > tr > td > form > div > table > tbody > tr:nth-child(4) > td > div > div.con_mrg03 > table > tbody > tr > td:nth-child(1) > div:nth-child(1) > table > tbody > tr:nth-child(9) > td > table > tbody > tr > td:nth-child(3) > input[type="text"]')
+			end
+			if es.length == 0
+				es = @driver.find_elements(:css, '#printzone > div.con_tbl_basic02 > table > tbody > tr > td > form > div > table > tbody > tr:nth-child(4) > td > div > div.con_mrg03 > table > tbody > tr > td:nth-child(1) > div.con_mrg04 > table > tbody > tr:nth-child(9) > td input[type="text"]')
+			end
+      raise CantFindElementError if es.length == 0
       es[0].send_key order.price
     else
       es = @driver.find_elements(:css, '#j')
       if es.length == 0 
-      es = @driver.find_elements(:css, '#nari')
+				es = @driver.find_elements(:css, '#nari')
       end
       raise CantFindElementError if es.length == 0
       es[0].send_key ' '
@@ -206,8 +220,8 @@ class SmbcStock
       hash[:volume] = txts[index].gsub(',','').scan(/\d+/)[0].to_i
       index += 1
       scans = tds[index].to_s.gsub(',','').scan(/(\d+)<br>(\d+)/)
-      hash[:price] = scans[0][0].to_f
-      hash[:order_price] = scans[0][1].to_f
+      hash[:order_price] = scans[0][0].to_f
+      hash[:price] = scans[0][1].to_f
       index += 1
       scans = txts[index].gsub(',','').scan(/[\d-]+/)
       hash[:profit] = scans[0].to_i
@@ -249,7 +263,8 @@ class SmbcStock
     @driver.navigate.to e.attribute('href')
     page = Nokogiri::HTML.parse(@driver.page_source)
     result = []
-    trs = page.css('#printzone > div:nth-child(3) > table > tbody > tr > td > table:nth-child(7) > tbody > tr')
+    trs = page.css('#printzone table tbody tr td table:nth-child(7) tbody tr')
+			#'#printzone > div:nth-child(3) > table > tbody > tr > td > table:nth-child(7) > tbody > tr')
     return result if not trs.length > 1
     trs[1..-1].each do |tr|
       tds = tr.css('td')
