@@ -1,7 +1,7 @@
 #coding: utf-8
 class Order
   attr_accessor :id, :code, :force, :date, :price, :volume, :contracted_price, 
-    :contracted_volume,:status, :edit_url, :cancel_url, :no, :edited
+    :contracted_volume,:status, :edit_url, :cancel_url, :no, :edited, :opperation
 
   def self.create(hash, is_buy, is_repay)
     if is_repay
@@ -28,6 +28,7 @@ class Order
             status: Status::Orderd.new, 
             edit_url: nil,
             cancel_url: nil,
+            opperation: ' ',
     }.merge(hash)
     @id = hash[:id]
     @no = hash[:no].to_s
@@ -41,10 +42,11 @@ class Order
     @edit_url = hash[:edit_url]
     @cancel_url = hash[:cancel_url]
     @status = hash[:status]
+		@opperation = hash[:opperation]
   end
 
   def orderd?
-    @status.kind_of? Status::Orderd or @status.kind_of? Status::Edited
+    @status.kind_of? Status::Orderd or @status.kind_of? Status::Edited or @status.kind_of? Status::Dealing
   end
 
   def contracted?
@@ -88,7 +90,11 @@ class Order
       self.kind_of? Order::Buy::Repay
   end
 
-  def self.last_orders
+	def loss_cut?
+		@opperation == 'l'
+	end
+
+  def self.last_orders(code)
     sql =<<-SQL
       select orders.no
            , orders.code
@@ -97,19 +103,20 @@ class Order
            , orders.price
            , orders.volume
            , orders.trade_kbn
+           , orders.opperation
         from orders
         join (select *
                 from orders 
-               where force = false 
+               where code = $1
             order by date desc 
                limit 1 
              ) latest
-          on orders.date = latest.date
+          on orders.id = latest.id
     order by orders.code
            , orders.trade_kbn
     SQL
     result = []
-    Db.conn.exec(sql).each do |r|
+    Db.conn.exec(sql, [code]).each do |r|
       hash = {
         no: r["no"],
         code: r["code"],
@@ -117,6 +124,7 @@ class Order
         force: r["force"],
         price: r["price"],
         volume: r["volume"],
+        opperation: r["opperation"],
       }
       is_buy = r["trade_kbn"].to_i == 0 or r["trade_kbn"].to_i == 2
       is_repay = r["trade_kbn"].to_i > 1
@@ -128,6 +136,14 @@ class Order
     []
   end
 
+	def stime
+		@date[-8..-7] + @date[-5..-4]
+	end
+
+	def sdate
+		@date[0..3] + @date[5..6] + @date[8..9]
+	end
+
   def insert
     sql =<<-SQL
       insert into orders (
@@ -138,8 +154,9 @@ class Order
         price,
         volume,
         trade_kbn,
+        opperation,
         updated
-      ) values ( $1, $2, $3, $4, $5, $6, $7, current_timestamp)
+      ) values ( $1, $2, $3, $4, $5, $6, $7, $8, current_timestamp)
     SQL
     trade_kbn = case self
                 when Buy::Repay
@@ -159,6 +176,7 @@ class Order
       @price,
       @volume,
       trade_kbn.to_s,
+      @opperation,
     ]
     Db.conn.exec(sql, params)
     1
