@@ -7,6 +7,7 @@ class Status
   class OutDated < Status; end
   class Denied < Status; end
   class Edited < Status; end
+  class Dealing < Status; end
 
   def self.create(str)
     return Orderd.new if str =~ /注文済/ or str =~ /注文中/
@@ -14,6 +15,7 @@ class Status
     return OutDated.new if str =~ /出来ズ/
     return Cancel.new if str =~ /取消済/
     return Edited.new if str =~ /訂正済/
+		Dealing.new
   end
 
 end
