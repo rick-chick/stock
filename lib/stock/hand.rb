@@ -28,4 +28,12 @@ class Hand
       true,
     )
   end
+
+  def sell?
+    @trade_kbn == :sell
+  end
+
+  def buy?
+    @trade_kbn == :buy
+  end
 end
