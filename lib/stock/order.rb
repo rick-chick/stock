@@ -1,7 +1,7 @@
 #coding: utf-8
 class Order
   attr_accessor :id, :code, :force, :date, :price, :volume, :contracted_price, 
-    :contracted_volume,:status, :edit_url, :cancel_url, :no, :edited, :opperation
+    :contracted_volume,:status, :edit_url, :cancel_url, :no, :edited, :opperation, :cancel, :next, :repeat
 
   def self.create(hash, is_buy, is_repay)
     if is_repay
@@ -29,6 +29,9 @@ class Order
             edit_url: nil,
             cancel_url: nil,
             opperation: ' ',
+            cancel: false, 
+            next: nil, 
+            repeat: 10, 
     }.merge(hash)
     @id = hash[:id]
     @no = hash[:no].to_s
@@ -43,10 +46,15 @@ class Order
     @cancel_url = hash[:cancel_url]
     @status = hash[:status]
 		@opperation = hash[:opperation]
+		@cancel = hash[:cancel]
+		@next = hash[:next]
+		@repeat = hash[:repeat]
   end
 
-  def orderd?
-    @status.kind_of? Status::Orderd or @status.kind_of? Status::Edited or @status.kind_of? Status::Dealing
+  def orderd? 
+    @status.kind_of? Status::Orderd or 
+      @status.kind_of? Status::Edited or
+      @status.kind_of? Status::Dealing
   end
 
   def contracted?
@@ -94,6 +102,33 @@ class Order
 		@opperation == 'l'
 	end
 
+  def cancel=(flg)
+    @cancel = flg
+    @repeat = 0 if flg
+  end
+
+  def repeat?
+    @repeat >= 0
+  end
+
+  def each
+    o = self
+    continue = true
+    while o and continue
+      yield o
+      if o.status.kind_of? Status::Denied
+        continue = false
+        o.repeat -= 1
+      end
+      o = o.next
+    end
+    continue
+  end
+
+  def denied?
+    @status.kind_of? Status::Denied
+  end
+
   def self.last_orders(code)
     sql =<<-SQL
       select orders.no
@@ -128,11 +163,13 @@ class Order
       }
       is_buy = r["trade_kbn"].to_i == 0 or r["trade_kbn"].to_i == 2
       is_repay = r["trade_kbn"].to_i > 1
+      is_buy = (not is_buy) if is_repay
       result << Order.create(hash, is_buy, is_repay)
     end
     result
   rescue => ex
-    p ex
+    puts ex.message
+    puts ex.backtrace
     []
   end
 
@@ -181,7 +218,8 @@ class Order
     Db.conn.exec(sql, params)
     1
   rescue => ex
-    p ex
+    puts ex.message
+    puts ex.backtrace
     0
   end
 

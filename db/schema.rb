@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160528103531) do
+ActiveRecord::Schema.define(version: 20160708213206) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -34,6 +34,7 @@ ActiveRecord::Schema.define(version: 20160528103531) do
     t.float   "diff"
     t.float   "rate"
     t.boolean "closed"
+    t.boolean "toku"
   end
 
   create_table "code_dates", id: :bigserial, force: :cascade do |t|
@@ -85,6 +86,11 @@ ActiveRecord::Schema.define(version: 20160528103531) do
     t.datetime "updated"
   end
 
+  create_table "statuses", id: :bigserial, force: :cascade do |t|
+    t.datetime "time",                      null: false
+    t.datetime "updated", default: "now()"
+  end
+
   create_table "stock_keys", id: :bigserial, force: :cascade do |t|
     t.datetime "updated"
   end
@@ -100,9 +106,20 @@ ActiveRecord::Schema.define(version: 20160528103531) do
     t.integer  "stock_key_id", limit: 8
   end
 
+  create_table "trend_follow_statuses", id: false, force: :cascade do |t|
+    t.integer  "status_id", limit: 8
+    t.string   "code",      limit: 8, null: false
+    t.boolean  "follow"
+    t.boolean  "direction"
+    t.datetime "updated"
+  end
+
+  add_index "trend_follow_statuses", ["status_id"], name: "status_id_index", unique: true, using: :btree
+
   add_foreign_key "code_dates", "stock_keys", name: "fk_code_date_stock_key", on_delete: :cascade
   add_foreign_key "code_times", "stock_keys", name: "fk_code_time_stock_key", on_delete: :cascade
   add_foreign_key "pair_times", "stock_keys", name: "fk_pair_time_stock_key", on_delete: :cascade
   add_foreign_key "splits", "code_dates", column: "id", name: "splits_id_fkey"
   add_foreign_key "stocks", "stock_keys", name: "fk_stock_stock_key", on_delete: :cascade
+  add_foreign_key "trend_follow_statuses", "statuses", name: "fk_trend_follow_status_status_key", on_delete: :cascade
 end

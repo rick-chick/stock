@@ -2,7 +2,7 @@
 class Board
   attr_accessor :code, :price, :sell, :buy, :sell_volume, :buy_volume, 
     :open, :open_time, :high, :high_time, :low, :low_time, 
-    :time, :volume, :tick, :diff, :rate, :closed
+    :time, :volume, :tick, :diff, :rate, :closed, :toku
 
   def initialize(hash = {})
     hash = {time: Time.now
@@ -25,6 +25,7 @@ class Board
     @volume = hash[:volume].to_i
     @tick = hash[:tick].to_f
     @closed = hash[:closed]
+    @toku = hash[:toku]
   end
 
   def closed?
@@ -36,7 +37,7 @@ class Board
     sql = <<-SQL
       select  code, price, sell, buy, sell_volume, buy_volume, 
 							open, open_time, high, high_time, low, low_time, 
-							time, volume, tick, diff, rate, closed
+							time, volume, tick, diff, rate, closed, toku
         from  boards
        where  code = $1
     SQL
@@ -61,6 +62,7 @@ class Board
 			b.volume = row["volume"].to_i
 			b.tick = row["tick"].to_f
 			b.closed = row["closed"]
+			b.toku = (row["toku"] == "t")
 			ret << b
     end
 		ret
@@ -71,26 +73,28 @@ class Board
 							@rate, @open, @open_time, @high,
 							@high_time, @low, @low_time, @sell,
 							@sell_volume, @buy, @buy_volume, @volume,
-							@tick, @closed,
+							@tick, @closed, @toku
 		]
     sql = <<-SQL
       insert into boards (code, price, time, diff,
 													rate, open, open_time, high,
 													high_time, low, low_time, sell,
 													sell_volume, buy, buy_volume, volume,
-													tick, closed) 
+													tick, closed, toku) 
 									values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 
-													$11, $12, $13, $14, $15, $16, $17, $18)
+													$11, $12, $13, $14, $15, $16, $17, $18, $19)
 							on conflict on constraint boards_pkey
 						do update set price = $2 , time = $3 , diff = $4 , rate = $5 , open = $6
 												, open_time = $7 , high = $8 , high_time = $9 , low = $10
 												, low_time = $11 , sell = $12 , sell_volume = $13 , buy = $14
 												, buy_volume = $15 , volume = $16 , tick = $17 , closed = $18
+                        , toku = $19
 		SQL
     Db.conn.exec(sql, params)
 		1
 	rescue => ex
-		p ex
+    puts ex.message
+    puts ex.backtrace
 		0
 	end
 end

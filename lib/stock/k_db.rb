@@ -52,8 +52,8 @@ class KDb
         #proxy.delete
         read_stocks(code, from, to)
       rescue => ex
-        p data
-        p ex.backtrace
+        puts data
+        puts ex.backtrace
         puts ex.message
         puts ex.class.name
         puts "http://k-db.com/stocks/#{code}/minutely?date=#{format(date)}&download=csv can't open"

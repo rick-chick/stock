@@ -111,7 +111,7 @@ class Stocks < Array
     end
   end
 
-  def change(length)
+  def change(length=1)
     calc(length+1) do |stocks|
       stocks[0].value ?
         stocks[-1].value / stocks[0].value :

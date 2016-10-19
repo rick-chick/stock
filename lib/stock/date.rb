@@ -54,7 +54,9 @@ class Date
   end
 
   def self.latest_after_a_day
-    (Date.parse(Date.latest) + 1).strftime("%Y%m%d")
+    date = Date.latest
+    date = Date.now if not date
+    (Date.parse(date) + 1).strftime("%Y%m%d")
   end
 
   def self.latest_of(code)

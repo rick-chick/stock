@@ -64,7 +64,8 @@ class Yahoo
         true
       end
     rescue  => ex
-      ex.backtrace
+      puts ex.message
+      puts ex.backtrace
       false
     end
   end

@@ -73,7 +73,7 @@ class PairTime < StockKey
   rescue => ex
     p self
     puts ex.message
-    p ex.backtrace
+    puts ex.backtrace
     0
   end
 end

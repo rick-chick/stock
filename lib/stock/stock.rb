@@ -109,7 +109,7 @@ class Stock
     1
   rescue => ex
     p self
-    p ex.backtrace
+    puts ex.backtrace
     puts ex.message
     0
   end

@@ -1,30 +1,62 @@
 #encoding: utf-8
 class Player
 
-  attr_accessor :boards, :hands, :orders, :ticks, :volumes, :f
+  attr_accessor :boards, :hands, :orders, :ticks, :volumes, :f, :invalid_orders, :step
+
+  def initialize
+    @invalid_orders = []
+  end
 
   def codes=(codes)
     @codes = []
     codes.each {|code| @codes << code.to_s}
   end
 
+  def invalid_orders=(orders)
+    @invalid_orders = orders
+  end
+
   def decide(&agent)
     orders = []
     hold_status
     case assemble_status
+    when AssembleStatus::INVALID
+      orders = @invalid_orders
     when AssembleStatus::BE_CONTRACTED
       @codes.each_with_index do |code, i|
         b = @boards.find {|b| b.code == code }
         @orders.find_all {|o| o.orderd? and o.code == code}.map do |order|
           order.date = Time.now
-          order.edited = true
           case order
-          when Order::Buy, Order::Buy::Repay
+          when Order::Buy::Repay
+            order.edited = true
             order.price = order.price + @ticks[i]
-          when Order::Sell, Order::Sell::Repay
+            orders << order
+          when Order::Sell::Repay
+            order.edited = true
             order.price = order.price - @ticks[i]
+            orders << order
+          when Order::Buy
+            order.cancel = true
+            order.next = buy[0]
+            order.next.price = order.price + @ticks[i]
+            prev = order.next
+            buy[1..-1].each do |o|
+              prev.next = o
+              prev = o
+            end
+            orders << order
+          when Order::Sell
+            order.cancel = true
+            order.next = sell[0]
+            order.next.price = order.price - @ticks[i]
+            prev = order.next
+            sell[1..-1].each do |o|
+              prev.next = o
+              prev = o
+            end
+            orders << order
           end
-          orders << order
         end
       end
     when AssembleStatus::PROCESSING
@@ -47,6 +79,15 @@ class Player
         when HoldStatus::BUY
         when HoldStatus::SELL
           orders = [repay, buy]
+        when HoldStatus::INVALID
+          orders = buy
+          orders.each do |order|
+            hand = @hands.find {|h| h.code == order.code and h.buy?}
+            order.volume -= hand.volume if hand
+          end
+          if @hands.find {|h| h.sell?}
+            orders.unshift repay
+          end
         end
       when OrderStatus::SELL
         case hold_status
@@ -55,18 +96,36 @@ class Player
         when HoldStatus::BUY
           orders = [repay, sell]
         when HoldStatus::SELL
+        when HoldStatus::INVALID
+          orders = buy
+          orders.each do |order|
+            hand = @hands.find {|h| h.code == order.code and h.buy?}
+            order.volume -= hand.volume if hand
+          end
+          if @hands.find {|h| h.sell?}
+            orders.unshift repay
+          end
         end
       when OrderStatus::LOSS_CUT
         case hold_status
         when HoldStatus::NONE
         when HoldStatus::BUY
-          orders = [repay, sell]
+          orders = [repay, sell].flatten
+          @codes.each_with_index do |code, i|
+            orders.find_all {|o| o.code == code }.each do |o|
+              o.price -= 5 * @ticks[i]
+            end
+          end
         when HoldStatus::SELL
-          orders = [repay, buy]
+          orders = [repay, buy].flatten
+          @codes.each_with_index do |code, i|
+            orders.find_all {|o| o.code == code }.each do |o|
+              o.price += 5 * @ticks[i]
+            end
+          end
         end
         orders.flatten!
         orders.each {|o| o.opperation = 'l'}
-        orders.each {|o| o.force = true}
       when OrderStatus::PENDING
         case hold_status
         when HoldStatus::NONE
@@ -75,11 +134,9 @@ class Player
         end
       end
     end
-    if orders.flatten.length > 0
-      @loss_cut = false
-      AssembleStatus.current = AssembleStatus::PROCESSING
-    end
-    orders.flatten.each {|order| agent.call order }
+    ret = orders.flatten
+    puts ret if ret.length > 0
+    ret.each {|order| agent.call order }
   end
 
   def buy
@@ -134,7 +191,7 @@ class Player
         result << order
       end
     end
-    result
+    result.uniq {|o| o.edit_url}.find_all {|o| o.edit_url}
   end
 
   def validate_board
@@ -143,13 +200,34 @@ class Player
     raise InvalidBoadError if not @boards.find {|b| b.code == @codes[1]}
   end
 
-  def transact?
+  def valid_status?
+    assemble_status
+    hold_status
     @codes.each do |code|
-      next if @orders.find{|o| o.code == code and o.orderd?} 
-      next if @boards.find{|b| b.code == code}
-      return false
+      if HoldStatus.current == HoldStatus::NONE or
+        HoldStatus.current == HoldStatus::INVALID
+        if AssembleStatus.current == AssembleStatus::COMPLETE
+          return false
+        end
+      elsif HoldStatus.current == HoldStatus::SELL or
+        HoldStatus.current == HoldStatus::BUY
+        if AssembleStatus.current == AssembleStatus::PROCESSING or
+        AssembleStatus.current == AssembleStatus::BE_CONTRACTED or 
+        AssembleStatus.current == AssembleStatus::INVALID
+          return false
+        end
+      end
     end
     return true
+  end
+
+  def set_prev_status
+    hold_status
+    if HoldStatus.current.buy?
+      OrderStatus.current = OrderStatus::BUY
+    elsif HoldStatus.current.sell?
+      OrderStatus.current = OrderStatus::SELL
+    end
   end
 
   def order_status
@@ -252,29 +330,20 @@ class Player
     end
     board = @boards.group_by {|b| b.code}
     uncontracteds.each do |o|
-      p ["b " + board[o.code][0].buy.to_s, 
-         "o " + o.price.to_s,
-         "s " + board[o.code][0].sell.to_s,
-         o.code, 
-      ].join(' ')
       raise OrderUndefinedCodeError if not board.key? o.code
       idx = @codes.index o.code
       tick = @ticks[idx]
-      if o.buy?
-        if board[o.code][0].buy > o.price
-          return AssembleStatus.current = AssembleStatus::BE_CONTRACTED
-        end
-      elsif o.sell?
-        if board[o.code][0].sell < o.price
-          return AssembleStatus.current = AssembleStatus::BE_CONTRACTED
-        end
+      if o.buy? and board[o.code][0].buy > o.price
+        return AssembleStatus.current = AssembleStatus::BE_CONTRACTED
+      elsif o.sell? and board[o.code][0].sell < o.price
+        return AssembleStatus.current = AssembleStatus::BE_CONTRACTED
       end
     end
     AssembleStatus.current = AssembleStatus::PROCESSING
   end
 
   def have_uncontracted_order?
-    not AssembleStatus.current == AssembleStatus::COMPLETE or HoldStatus.current == HoldStatus::INVALID
+    not assemble_status == AssembleStatus::COMPLETE #or hold_status == HoldStatus::INVALID
   end
 
   class OrderUndefinedCodeError < StandardError; end
@@ -304,6 +373,28 @@ class OrderStatus < Status
     @type = type
   end
 
+  def self.current=(status)
+    super(status)
+    return if not (status == BUY or status == SELL)
+    @prev = status
+  end
+
+  def self.prev
+    @prev ||= PENDING
+  end
+
+  def self.prev=(status)
+    @prev = status
+  end
+
+  def buy?
+    @type == "buy"
+  end
+
+  def sell?
+    @type == "sell"
+  end
+
   BUY = OrderStatus.new("buy")
   SELL = OrderStatus.new("sell")
   LOSS_CUT = OrderStatus.new("loss_cut")
@@ -315,6 +406,14 @@ class HoldStatus < Status
 
   def initialize(type)
     @type = type
+  end
+
+  def buy?
+    @type == "buy"
+  end
+
+  def sell?
+    @type == "sell"
   end
 
   NONE = HoldStatus.new("none")
@@ -332,9 +431,18 @@ class AssembleStatus < Status
   PROCESSING = AssembleStatus.new("processing")
   BE_CONTRACTED = AssembleStatus.new("be_contracted")
   COMPLETE = AssembleStatus.new("complete")
+  INVALID = AssembleStatus.new("invalid")
 end
 
 class Normal < Player
+
+  attr_accessor :safe_trade, :ll, :sl, :lt, :st
+
+  def initialize
+    super
+    @thr = 0.1
+    @safe_trade = true
+  end
 
   def buy
     validate_board
@@ -342,7 +450,7 @@ class Normal < Player
     board1 = @boards.find {|b| b.code == @codes[0] }
     result << Order::Buy.new(
       code: @codes[0],
-      price: board1.buy + @ticks[0],
+      price: @safe_trade ? board1.buy + @ticks[0] : board1.buy ,
       volume: @volumes[0],
     )
     result
@@ -354,7 +462,7 @@ class Normal < Player
     board1 = @boards.find {|b| b.code == @codes[0] }
     result << Order::Sell.new(
       code: @codes[0],
-      price: board1.sell - @ticks[0],
+      price: @safe_trade ? board1.sell - @ticks[0] : board1.sell ,
       volume: @volumes[0],
     )
     result
@@ -368,9 +476,13 @@ class Normal < Player
       order = hand.to_o
       case hand.trade_kbn
       when :buy
-        order.price = board.sell - @ticks[0]
+        @safe_trade ? 
+          order.price = board.sell - @ticks[0] :
+          order.price = board.sell
       when :sell
-        order.price = board.buy + @ticks[0]
+        @safe_trade ? 
+          order.price = board.buy + @ticks[0] :
+          order.price = board.buy
       end
       result << order
     end
@@ -384,81 +496,37 @@ class Normal < Player
 
   def order_status
     board = @boards.group_by {|b| b.code}
-    all = Minute.closes(nil, nil, code: @codes[0], count: 1000)
-    to = Time.now.strftime('%Y%m%d')
-    if HoldStatus.current.nil?
+    if board[@codes[0]][0].toku
       return OrderStatus.current = OrderStatus::PENDING
     end
-    if all.length < 500
+    all = Minute.closes(nil, nil, code: @codes[0], count: (@ll+1))
+    if all.length < @ll+1
       return OrderStatus.current = OrderStatus::PENDING
     end
-    b = board[@codes[0]][0]
-    s = Minute.new
-    s.key   = CodeTime.new(@codes[0], to, Time.now.strftime('%H%M'))
-    if OrderStatus.current == OrderStatus::BUY
-      s.value = b.sell
-      all << s
-    elsif OrderStatus.current == OrderStatus::SELL
-      s.value = b.buy
-      all << s
+    l_bol = all[-@ll..-1].bol(@ll)[-1].value
+    s_bol = all[-@sl..-1].bol(@sl)[-1].value
+    if @trend_follow.nil?
+      bol = all[-@ll-1..-2].bol(@ll)[-1].value
+      @trend_follow = (bol < -@lt or bol > @lt)
     end
-    stocks = all[-200..-1]
-    mx = 0
-    vmx= 0
-    step = 80.step(180,10)
-    step.each do |length|
-      stocks = all[-length..-1]
-      x, y = [], []
-      stocks.each_with_index do |s, i|
-        x << i
-        y << s.value
+    if @trend_follow
+      if (OrderStatus.prev.buy? and l_bol < @lt) or
+        (OrderStatus.prev.sell? and l_bol > -@lt)
+        @trend_follow = false
       end
-      x = Daru::Vector[*x]
-      y = Daru::Vector[*y]
-      r = Statsample::Regression::Simple.new_from_vectors(x,y)
-      if r.r2 > vmx 
-        mx  = length
-        vmx = r.r2
-      end
+    elsif l_bol > @lt 
+      @trend_follow = true 
+      return OrderStatus.current = OrderStatus::BUY
+    elsif l_bol < -@lt
+      @trend_follow = true 
+      return OrderStatus.current = OrderStatus::SELL
     end
-    bols = all[-400..-1].bol(400)
-    if HoldStatus.current == HoldStatus::BUY
-      if bols[-1].value < -3
-        return OrderStatus.current = OrderStatus::LOSS_CUT
-      end
-    elsif HoldStatus.current == HoldStatus::SELL
-      if bols[-1].value > 3
-        return OrderStatus.current = OrderStatus::LOSS_CUT
-      end
-    end
-    last_order = Order.last_orders(@codes[0])[0]
-    if last_order.loss_cut?
-      bol = all.bol(400)
-      sub = Stocks[*bol.find_all {|a| a.key.date + a.key.time > last_order.sdate + last_order.stime }]
-      if last_order.buy? and bols[-1].value > 2
-        if sub.find{|a| a.value < 1.5}
-          return OrderStatus.current = OrderStatus::SELL
-        end
-      elsif last_order.sell? and bols[-1].value < -2
-        if sub.find{|a| a.value > -1.5}
-          return OrderStatus.current = OrderStatus::BUY
-        end
-      end
-    else
-      if bols[-1].value < -0.5
-        if b.buy_volume > @volumes[0] * 50
-          return OrderStatus.current = OrderStatus::BUY
-        end
-      elsif bols[-1].value > 0.5 
-        if b.sell_volume > @volumes[0] * 50
-          return OrderStatus.current = OrderStatus::SELL
-        end
-      end
-      if HoldStatus.current == HoldStatus::BUY
-        return OrderStatus.current = OrderStatus::BUY
-      elsif HoldStatus.current == HoldStatus::SELL
-        return OrderStatus.current = OrderStatus::SELL
-      end
+    if @trend_follow
+      #none
+    elsif s_bol < -@st 
+      return OrderStatus.current = OrderStatus::BUY
+    elsif s_bol > @st 
+      return OrderStatus.current = OrderStatus::SELL
     end
     OrderStatus.current = OrderStatus::PENDING
   end
@@ -489,23 +557,24 @@ class Normal < Player
   end
 
   def assemble_status
-    uncontracteds = @orders.find_all {|o| o.orderd? and o.code.to_s == @codes[0].to_s }
-    if uncontracteds.length == 0
+    uncontracteds = @orders.find_all {|o| o.orderd? and 
+                                      o.code.to_s == @codes[0].to_s}
+    if uncontracteds.length == 0 and @invalid_orders.length == 0
       return AssembleStatus.current = AssembleStatus::COMPLETE
     end
     uncontracteds.each do |o|
       tick = @ticks[0]
-      if o.buy?
-        if @boards[0].buy > o.price
-          return AssembleStatus.current = AssembleStatus::BE_CONTRACTED
-        end
-      elsif o.sell?
-        if @boards[0].sell < o.price
-          return AssembleStatus.current = AssembleStatus::BE_CONTRACTED
-        end
+      if o.buy? and @boards[0].buy > o.price
+        return AssembleStatus.current = AssembleStatus::BE_CONTRACTED
+      elsif o.sell? and @boards[0].sell < o.price
+        return AssembleStatus.current = AssembleStatus::BE_CONTRACTED
       end
     end
-    AssembleStatus.current = AssembleStatus::PROCESSING
+    if @invalid_orders.length > 0 then
+      AssembleStatus.current = AssembleStatus::INVALID
+    else
+      AssembleStatus.current = AssembleStatus::PROCESSING
+    end
   end
 
   def average_buy
@@ -534,6 +603,10 @@ class Normal < Player
 
   def last_sell_order
     @orders.find_all{|o| o.code == @codes[0] and o.sell?}.sort{|a,b| b.no <=> a.no}[0]
+  end
+
+  def invalid_orders=(orders)
+    super(orders)
   end
 
 end

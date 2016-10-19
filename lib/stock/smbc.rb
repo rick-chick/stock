@@ -37,7 +37,10 @@ class SmbcStock
   end
 
   def recept(order)
-    if order.new? 
+    order.status = Status::Denied.new
+    if order.cancel
+      cancel(order)
+    elsif order.new? 
       case order
       when Order::Sell::Repay, Order::Buy::Repay
         @driver.navigate.to(TOP_URL + order.edit_url)
@@ -60,7 +63,8 @@ class SmbcStock
     end
     order
   rescue => e
-    order.status = Status::Denied.new
+    puts e.message
+    puts e.backtrace[0..50]
     order
   ensure
     @driver.navigate.to @torihiki_url
@@ -73,17 +77,14 @@ class SmbcStock
     es = @driver.find_elements(:css, '#printzone form input[type="image"]' )
     e = es.find { |e| e.attribute('alt') == '注文を取り消す' }
     if not e
-      order.status = Status::Denied.new
       @driver.navigate.to @torihiki_url
       return order
     end
-    e.send_key ' '
+    e.click
     es = @driver.find_elements(:css, '#printzone > div.con_tbl_basic02 > div span span')
     if es.length > 0 
       order.no = es[0].text.scan(/([\d]*)番/)[0][0]
       order.status = Status::Cancel.new
-    else
-      order.status = Status::Denied.new
     end
     @driver.navigate.to @torihiki_url
     @last_loaded = Time.now
@@ -94,7 +95,10 @@ class SmbcStock
     raise InvalidOrderEditError if not order.edited
     es = @driver.find_elements(:css, '#printzone input[type="text"]') 
     e = es.find {|e| e.attribute('name') == 'tseiSu'}
-    e.send_key(order.volume) if e
+    if e
+      e.send_key(order.volume) 
+      e.click
+    end
     if not order.force
 			es = @driver.find_elements(:css, '#printzone > div.con_tbl_basic02 > table > tbody > tr > td > form > div > table > tbody > tr:nth-child(4) > td > div > div.con_mrg03 > table > tbody > tr > td:nth-child(1) > table > tbody > tr:nth-child(9) input[type="text"]')
       if es.length == 0
@@ -117,6 +121,7 @@ class SmbcStock
 			end
       raise CantFindElementError if es.length == 0
       es[0].send_key order.price
+      es[0].click
     else
       es = @driver.find_elements(:css, '#j')
       if es.length == 0 
@@ -124,21 +129,25 @@ class SmbcStock
       end
       raise CantFindElementError if es.length == 0
       es[0].send_key ' '
+      es[0].click
     end
 
     es = @driver.find_elements(:css, '#tojit')
-    es[0].send_key ' ' if es.length > 0
+    if es.length > 0
+      es[0].send_key ' ' 
+      es[0].click
+    end
 
     es = @driver.find_elements(:css, '#printzone input[type="image"]')
     e = es.find {|e| e.attribute('alt') =~ /内容を確認する/ }
     raise CantFindElementError if not e
-    e.send_key ' '
+    e.click
 
     es = @driver.find_elements(:css, '#printzone input[type="image"]')
     raise CantFindElementError if es.length == 0
     e = es.find {|e| e.attribute('alt') =~ /訂正/ }
     raise CantFindElementError if not e
-    e.send_key ' '
+    e.click
      
     es = @driver.find_elements(:css, '#printzone span')
     raise CantFindElementError if es.length == 0
@@ -166,27 +175,36 @@ class SmbcStock
                           ).send_key order.price
     end
     es = @driver.find_elements(:css, '#isuryo > table > tbody > tr:nth-child(1) > td:nth-child(1) > input[type="text"]')
-    es[0].send_key order.volume if es.length > 0
+    if es.length > 0
+      es[0].send_key order.volume
+      es[0].click
+    end
     es = @driver.find_elements(:css, '#seido')
-    es[0].send_key ' ' if es.length > 0 
+    if es.length > 0 
+       es[0].send_key ' '
+       es[0].click
+    end
     es = @driver.find_elements(:css, '#tojit')
-    es[0].send_key ' ' if es.length > 0
+    if es.length > 0
+      es[0].send_key ' ' 
+      es[0].click 
+    end
 
     e = @driver.find_elements(:css, '#printzone form input[type="image"]').find do |e| 
       e.attribute('name') == 'execUrl' or e.attribute('name') == 'autotukeUrl'
     end 
     raise CantFindElementError if not e
-    e.send_key ' ' 
+    e.click
     e = @driver.find_elements(:css, '#printzone input[type="image"]').find do |e| 
       e.attribute('alt') == '注文する'
     end
     raise CantFindElementError if not e
-    e.send_key ' '
+    e.click
 
     es = @driver.find_elements(:css, '#printzone > form > div > table > tbody > tr > td > div:nth-child(2)')
     raise CantFindElementError if es.length == 0
     order.no = es[0].text.scan(/([\d]*)番/)[0][0]
-    order.status = Status::Orderd.new
+    order.status = Status::Orderd.new if order.no != "" 
   end
 
   def hands
@@ -289,7 +307,6 @@ class SmbcStock
     end
     result
   rescue => e
-    order.status = Status::Denied.new
     raise(StandardError,e.message+'!!',e.backtrace)
   ensure
     @driver.navigate.to @torihiki_url

@@ -1,5 +1,6 @@
 #coding: utf-8
 require 'selenium-webdriver'
+require 'objspace'
 require 'open-uri'
 
 class WebDriver
@@ -175,7 +176,7 @@ class MatsuiStock
       e = @driver.find_element(:css, 'body > table > tbody > tr:nth-child(1) > td > table > tbody > tr:nth-child(22) > td:nth-child(2) > a')
       @driver.navigate.to e.attribute('href')
       e = @driver.find_element(:css, '#Control > input[type="button"]:nth-child(1)')
-      e.send_key ' ' 
+      e.send_key :enter
     end
 
     def set(codes)
@@ -187,6 +188,7 @@ class MatsuiStock
         input.send_key ''
         input.send_key code
       end
+			@driver.action.send_keys :tab
 			@driver.action.send_keys :tab
     end
 
@@ -201,7 +203,8 @@ class MatsuiStock
         end
         wait_load
 			rescue => ex
-				p ex.backtrace
+        puts ex.message
+        puts ex.backtrace
       end while block.call(read)
     end
 
@@ -212,6 +215,17 @@ class MatsuiStock
     def read
       result = []
       page = Nokogiri::HTML @driver.page_source
+      objs = ObjectSpace.each_object.inject(Hash.new 0) {|h,o| h[o.class]+=1; h }
+      if @objs
+        objs.each do |c,i|
+          @objs[c] ||= i
+          if @objs[c] < i
+            puts "#{c} #{i}" 
+            @objs[c] = i
+          end
+        end
+      end
+
       lines = page.css('#design-fourRatesList > div.wrap-portfolio div.group-stock')
       @codes.each_with_index do |code, index|
         hash = {}
@@ -238,9 +252,11 @@ class MatsuiStock
         divs = line.css('td.td07 div')
         hash[:sell] = divs[0].text.scan(/[.\d]+/)[0].to_f
         hash[:sell_volume] = divs[1].text.scan(/[.\d]+/)[0].to_f
+        hash[:toku] = divs[0].text.include?('特')
         divs = line.css('td.td08 div')
         hash[:buy] = divs[0].text.scan(/[.\d]+/)[0].to_f
         hash[:buy_volume] = divs[1].text.scan(/[.\d]+/)[0].to_f
+        hash[:toku] = hash[:toku] or divs[0].text.include?('特')
         divs = line.css('td.td09 div')
         hash[:volume] = divs[0].text.scan(/[.\d]+/)[0].to_f
         hash[:tick] = divs[1].text.scan(/[.\d]+/)[0].to_f
@@ -248,7 +264,8 @@ class MatsuiStock
       end
       result
 		rescue => ex
-			p ex.backtrace
+      puts ex.message
+      puts ex.backtrace
 			[]
     end
 
