@@ -1,5 +1,6 @@
 require File.expand_path(File.dirname(__FILE__), '../lib/stock')
 
+exit if HolidayJapan.check(Date.today)
 codes = ["1568", "1579"]
 board = MatsuiStock::StockBoard.new
 board.log_in(ARGV[0], ARGV[1])
