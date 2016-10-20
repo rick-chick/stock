@@ -3,6 +3,7 @@ class Controller
   attr_accessor :codes, :agent, :player
 
   def run(codes, agent, player)
+    exit if HolidayJapan.check(Date.today)
     invalid_orders = []
     puts codes[0]
     player.hands = agent.hands.find_all {|h| h.code == codes[0]}
